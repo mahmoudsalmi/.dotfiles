@@ -1,0 +1,99 @@
+[user]
+  email = mahmoud@salmi.dev
+  name = Mahmoud SALMI
+
+[init]
+  defaultbranch = main
+
+[core]
+  autocrlf = input
+  excludesfile = ~/.gitignore_global
+
+[pull]
+  rebase = true
+
+[maintenance]
+  repo = ~/.local/share/zsh/plugins/znap
+  repo = ~/.local/share/zsh/plugins/atuinsh/atuin
+  repo = ~/.local/share/zsh/plugins/ajeetdsouza/zoxide
+  repo = ~/.local/share/zsh/plugins/b4b4r07/enhancd
+  repo = ~/.local/share/zsh/plugins/hlissner/zsh-autopair
+  repo = ~/.local/share/zsh/plugins/k4rthik/git-cal
+  repo = ~/.local/share/zsh/plugins/zsh-users/zsh-autosuggestions
+  repo = ~/.local/share/zsh/plugins/zsh-users/zsh-completions
+  repo = ~/.local/share/zsh/plugins/zsh-users/zsh-history-substring-search
+  repo = ~/.local/share/zsh/plugins/zsh-users/zsh-syntax-highlighting
+
+[filter "lfs"]
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true
+
+[lfs "ssh"]
+  automultiplex = false
+
+[alias]
+  # basic
+  co = checkout
+  ci = commit
+  # config
+  conf = config --global --edit
+  # logs
+  lol = log --oneline --decorate --all
+  graph = log --graph --oneline --decorate --all
+  # diff
+  d = diff --word-diff
+  # status
+  s = status -sb
+  st = status -b
+
+[Grep]
+  lineNumber = true
+  extendedRegexp = true
+
+[merge]
+  conflictstyle = diff3
+
+[color]
+  ui = auto
+
+[color.decorate]
+  HEAD         = 6
+  branch       = 2 bold
+  remoteBranch = 1
+  tag          = 5 bold
+  stash        = 3 dim
+
+[color "diff"]
+  meta       = 8
+  frag       = 4 bold
+  old        = 1
+  new        = 2
+
+[color "status"]
+  added      = 2 bold
+  changed    = 3
+  untracked  = 11
+  ignored    = 0
+
+[color "branch"]
+  current    = 1 reverse
+  local      = 5
+  remote     = 8
+
+[merge]
+  tool = nvimdiff
+
+[mergetool "nvimdiff"]
+  # Use Neovim in diff mode: show LOCAL, BASE, REMOTE
+  cmd = nvim -d "$LOCAL" "$BASE" "$REMOTE" -c 'wincmd l'
+  trustExitCode = false
+
+[diff]
+  tool = nvimdiff
+
+[difftool "nvimdiff"]
+  cmd = nvim -d "$LOCAL" "$REMOTE"
+  trustExitCode = true
+
