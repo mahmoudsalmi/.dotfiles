@@ -1,12 +1,10 @@
-# == Icons ==
+color:
+  when: always
+  theme: custom
 icons:
-  # When to use icons.
-  # When "classic" is set, this is set to "never".
-  # Possible values: always, auto, never
   when: auto
-  # Which icon theme to use.
-  # Possible values: fancy, unicode
   theme: fancy
-  # Separator between icon and the name
-  # Default to 1 space
   separator: "  "
+date: +%Y-%m-%d %H:%M:%S
+hyperlink: always
+permission: rwx

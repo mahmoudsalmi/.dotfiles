@@ -4,12 +4,31 @@
 # -------------------------------------------------
 function __ms_zsh_alias() {
 
-  # alias ls='exa --color=always --group-directories-first' # my preferred listing
-  # alias ls='ls '
-  alias la='eza -al --color=always --group --group-directories-first'      # all files and dirs
-  alias ll='eza -l --color=always --group --group-directories-first'       # long format
-  alias lt='eza -l -snew --color=always --group --group-directories-first' # tree listing
-  alias l='eza -al -snew --color=always --group --group-directories-first'
+  if command -v lsd >/dev/null 2>&1; then
+    alias ls='lsd --group-directories-first'     # simple ls
+    alias la='lsd -al --group-directories-first' # all files and dirs
+    alias ll='lsd -l --group-directories-first'  # long format
+    alias lt='lsd -lt --group-directories-first' # ordered by date
+    alias l='lsd -alt --group-directories-first' # my preferred alias
+  elif command -v eza >/dev/null 2>&1; then
+    alias ls='eza --color=always --group-directories-first'                  # simple ls
+    alias la='eza -al --color=always --group --group-directories-first'      # all files and dirs
+    alias ll='eza -l --color=always --group --group-directories-first'       # long format
+    alias lt='eza -l -snew --color=always --group --group-directories-first' # ordered by date
+    alias l='eza -al -snew --color=always --group --group-directories-first' # my preferred alias
+  elif command -v exa >/dev/null 2>&1; then
+    alias ls='exa --color=always --group-directories-first'                  # simple ls
+    alias la='exa -al --color=always --group --group-directories-first'      # all files and dirs
+    alias ll='exa -l --color=always --group --group-directories-first'       # long format
+    alias lt='exa -l -snew --color=always --group --group-directories-first' # ordered by date
+    alias l='exa -al -snew --color=always --group --group-directories-first' # my preferred alias
+  else
+    # alias ls='ls ' not needed
+    alias la='ls -al --color=always' # all files and dirs
+    alias ll='ls -l --color=always'  # long format
+    alias lt='ls -lt --color=always' # ordered by date
+    alias l='ls -alt --color=always' # my preferred alias
+  fi
 
   alias fzfp="fzf --preview 'bat --color=always --style=numbers --line-range=:500 {}'"
 
