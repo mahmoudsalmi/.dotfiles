@@ -25,6 +25,9 @@ function ms_zsh_startup_prompt {
 #   - load sdkman
 # -------------------------------------------------
 function __ms_zsh_startup_dev_tools() {
+  # ---------------------------------------------------------- pass [password-store] 
+  [ -f $HOME/.password-store/init-pass.zsh ] && source $HOME/.password-store/init-pass.zsh
+
   # ---------------------------------------------------------- Lua [PATH Luarocks]
   [ -d $HOME/.luarocks/bin ] && export PATH=$HOME/.luarocks/bin:$PATH
 
@@ -77,6 +80,7 @@ function __ms_zsh_startup_path() {
   __ms_zsh_startup_dev_tools
 
   # ---------------------------------------------------------- Docker [Rancher Desktop]
+  # TODO !Deprecated
   [ -d $HOME/.rd/bin ] && export PATH=$HOME/.rd/bin:$PATH
 
   # ---------------------------------------------------------- Snap [PATH]
