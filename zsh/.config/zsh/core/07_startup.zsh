@@ -25,7 +25,12 @@ function ms_zsh_startup_prompt {
 #   - load sdkman
 # -------------------------------------------------
 function __ms_zsh_startup_dev_tools() {
-  # ---------------------------------------------------------- pass [password-store] 
+  # ---------------------------------------------------------- jj
+  if command -v jj >/dev/null; then
+    znap fpath _jj 'jj util completion zsh'
+  fi
+
+  # ---------------------------------------------------------- pass [password-store]
   [ -f $HOME/.password-store/init-pass.zsh ] && source $HOME/.password-store/init-pass.zsh
 
   # ---------------------------------------------------------- Lua [PATH Luarocks]
@@ -67,6 +72,16 @@ function __ms_zsh_startup_dev_tools() {
   # ---------------------------------------------------------- java/sdk [SDKMAN]
   export SDKMAN_DIR="$HOME/.sdkman"
   [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+
+  # ---------------------------------------------------------- OBRSTACK [PATH]
+  if [[ -d "$HOME/.orbstack" ]]; then
+    znap fpath orbctl 'orbctl completion zsh'
+
+    if [[ -f "$HOME/.orbstack/ssh/config" && ! -f "$HOME/.ssh/config.d/orbstack" ]]; then
+      mkdir -p $HOME/.ssh/config.d
+      ln -s "$HOME/.orbstack/ssh/config" "$HOME/.ssh/config.d/orbstack"
+    fi
+  fi
 }
 
 # -------------------------------------------------
