@@ -3,7 +3,7 @@
 # ===========================
 
 font-family =  "Monospace Neon Var"
-font-size = 14.5
+font-size = 15
 theme = catppuccin-macchiato.conf
 cursor-style = block
 cursor-click-to-move = true
@@ -11,7 +11,7 @@ mouse-hide-while-typing = true
 background-opacity = .9
 background-blur-radius = 10
 unfocused-split-opacity = 0.7
-scrollback-limit = 10000000
+scrollback-limit = 100000000
 window-padding-x = 4
 window-padding-y = 4
 confirm-close-surface = true
@@ -71,7 +71,7 @@ keybind = super+physical:seven=goto_tab:7
 keybind = super+physical:six=goto_tab:6
 keybind = super+physical:three=goto_tab:3
 keybind = super+physical:two=goto_tab:2
-keybind = super+physical:zero=last_tab
+keybind = super+physical:zero=reset_font_size
 keybind = super+plus=increase_font_size:1
 keybind = super+q=quit
 keybind = super+right=text:\x05
