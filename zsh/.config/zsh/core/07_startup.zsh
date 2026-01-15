@@ -82,6 +82,9 @@ function __ms_zsh_startup_dev_tools() {
       ln -s "$HOME/.orbstack/ssh/config" "$HOME/.ssh/config.d/orbstack"
     fi
   fi
+
+  # ---------------------------------------------------------- Go [PATH]
+  [ -d $HOME/go/bin ] && export PATH=$HOME/go/bin:$PATH
 }
 
 # -------------------------------------------------
