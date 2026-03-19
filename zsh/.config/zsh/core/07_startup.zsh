@@ -3,9 +3,9 @@
 #   - load prompt
 # -------------------------------------------------
 function ms_zsh_startup_prompt {
-  if command -v fastfetch >/dev/null; then
-    fastfetch
-  fi
+  #if command -v fastfetch >/dev/null; then
+  #  fastfetch
+  #fi
 
   # if command -v pfetch >/dev/null; then
   #   pfetch --stat
