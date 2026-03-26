@@ -26,9 +26,10 @@ function ms_zsh_startup_prompt {
 # -------------------------------------------------
 function __ms_zsh_startup_dev_tools() {
   # ---------------------------------------------------------- jj
-  if command -v jj >/dev/null; then
-    znap fpath _jj 'jj util completion zsh'
-  fi
+  # Disabled: jj completion is slow (~120ms), uncomment if needed
+  # if command -v jj >/dev/null; then
+  #   znap fpath _jj 'jj util completion zsh'
+  # fi
 
   # ---------------------------------------------------------- pass [password-store]
   [ -f $HOME/.password-store/init-pass.zsh ] && source $HOME/.password-store/init-pass.zsh
@@ -51,7 +52,8 @@ function __ms_zsh_startup_dev_tools() {
   fi
 
   if command -v fnm >/dev/null; then
-    eval "$(fnm env --use-on-cd)"
+    # Use znap eval to cache fnm env output (much faster)
+    znap eval fnm-init 'fnm env --use-on-cd'
     znap fpath _fnm 'fnm completions'
   fi
 
@@ -60,18 +62,44 @@ function __ms_zsh_startup_dev_tools() {
   mkdir -p $PNPM_HOME
   export PATH=$PNPM_HOME:$PATH
 
-  if command -v pnpm >/dev/null; then
-    znap fpath _pnpm 'pnpm completion zsh'
-  fi
+  # Disabled: pnpm completion is slow (~288ms), uncomment if needed
+  # if command -v pnpm >/dev/null; then
+  #   znap fpath _pnpm 'pnpm completion zsh'
+  # fi
 
   # ---------------------------------------------------------- Nodejs [angular]
-  if command -v ng >/dev/null; then
-    znap fpath _ng 'ng completion script'
-  fi
+  # Disabled: ng completion is very slow (~800ms), uncomment if needed
+  # if command -v ng >/dev/null; then
+  #   znap fpath _ng 'ng completion script'
+  # fi
 
   # ---------------------------------------------------------- java/sdk [SDKMAN]
   export SDKMAN_DIR="$HOME/.sdkman"
-  [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+  
+  # Set up Java, Gradle, Kotlin paths directly (fast, bypasses security scanners)
+  if [[ -d "$SDKMAN_DIR/candidates/java/current" ]]; then
+    export JAVA_HOME="$SDKMAN_DIR/candidates/java/current"
+    export PATH="$JAVA_HOME/bin:$PATH"
+  fi
+  
+  if [[ -d "$SDKMAN_DIR/candidates/gradle/current" ]]; then
+    export PATH="$SDKMAN_DIR/candidates/gradle/current/bin:$PATH"
+  fi
+  
+  if [[ -d "$SDKMAN_DIR/candidates/kotlin/current" ]]; then
+    export PATH="$SDKMAN_DIR/candidates/kotlin/current/bin:$PATH"
+  fi
+  
+  if [[ -d "$SDKMAN_DIR/candidates/maven/current" ]]; then
+    export PATH="$SDKMAN_DIR/candidates/maven/current/bin:$PATH"
+  fi
+  
+  # Lazy-load SDKMAN only when 'sdk' command is used
+  sdk() {
+    unset -f sdk
+    source "$SDKMAN_DIR/bin/sdkman-init.sh"
+    sdk "$@"
+  }
 
   # ---------------------------------------------------------- OBRSTACK [PATH]
   if [[ -d "$HOME/.orbstack" ]]; then
