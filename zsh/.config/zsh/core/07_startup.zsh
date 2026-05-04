@@ -101,6 +101,11 @@ function __ms_zsh_startup_dev_tools() {
     sdk "$@"
   }
 
+  # ---------------------------------------------------------- jfrog-cli (jf)
+  if command -v jf >/dev/null; then
+    znap fpath _jf 'jf completion zsh'
+  fi
+
   # ---------------------------------------------------------- OBRSTACK [PATH]
   if [[ -d "$HOME/.orbstack" ]]; then
     znap fpath orbctl 'orbctl completion zsh'
@@ -113,6 +118,9 @@ function __ms_zsh_startup_dev_tools() {
 
   # ---------------------------------------------------------- Go [PATH]
   [ -d $HOME/go/bin ] && export PATH=$HOME/go/bin:$PATH
+
+  # ---------------------------------------------------------- Deno [PATH]
+  [ -d $HOME/.deno/bin ] && export PATH=$HOME/.deno/bin:$PATH
 }
 
 # -------------------------------------------------
@@ -128,6 +136,14 @@ function __ms_zsh_startup_path() {
   # ---------------------------------------------------------- Docker [Rancher Desktop]
   # TODO !Deprecated
   [ -d $HOME/.rd/bin ] && export PATH=$HOME/.rd/bin:$PATH
+
+  # ---------------------------------------------------------- Podman [PATH]
+  if [ -d /opt/podman/bin ]; then
+    export PATH=/opt/podman/bin:$PATH
+    if command -v podman >/dev/null; then
+      znap fpath _podman 'podman completion zsh'
+    fi
+  fi
 
   # ---------------------------------------------------------- Snap [PATH]
   [ -d /snap/bin ] && export PATH=/snap/bin:$PATH

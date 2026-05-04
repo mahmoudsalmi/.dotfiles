@@ -54,6 +54,7 @@ function __load_completions() {
 
   zmodload zsh/complist
   compinit
+
 }
 
 # -------------------------------------------------
