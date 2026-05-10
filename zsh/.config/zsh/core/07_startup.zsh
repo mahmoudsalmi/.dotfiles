@@ -58,9 +58,8 @@ function __ms_zsh_startup_dev_tools() {
   fi
 
   # ---------------------------------------------------------- Nodejs [PNPM]
-  export PNPM_HOME=$HOME/.local/share/pnpm
+  # PNPM_HOME and PATH are set in 01_variables.sh
   mkdir -p $PNPM_HOME
-  export PATH=$PNPM_HOME:$PATH
 
   # Disabled: pnpm completion is slow (~288ms), uncomment if needed
   # if command -v pnpm >/dev/null; then
