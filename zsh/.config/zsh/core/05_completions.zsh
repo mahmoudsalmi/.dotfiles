@@ -8,6 +8,9 @@ function __update_fpath() {
   #-- add local fpath --#
   fpath=($HOME/.local/share/zsh/site-functions $fpath)
 
+  #-- OpenSpec completions --#
+  [ -d "$HOME/.zsh/completions" ] && fpath=("$HOME/.zsh/completions" $fpath)
+
   #-- Add Nix profiles to fpath if nix command is available --#
   if command -v nix >/dev/null 2>&1; then
     local_options_status=$(setopt | grep local_options)
@@ -66,6 +69,10 @@ function __load_completions() {
 function ms_zsh_completions() {
   __update_fpath
   __load_completions
+
+  #-- bun completions --#
+  [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
+
   [ -f "$MS_ZSH_CONFIG/custom/05_completions.zsh" ] && source "$MS_ZSH_CONFIG/custom/05_completions.zsh"
 }
 

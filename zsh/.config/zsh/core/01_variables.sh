@@ -31,6 +31,13 @@ function ms_zsh_variables() {
   export DOCKER_TOOLS_VOLUMES_BKP="$HOME/_docker/_volumes/"
   #export DOCKER_TOOLS_CONTAINER="$HOME/.rd/bin/nerdctl"
 
+  #-- pnpm --#
+  export PNPM_HOME="$HOME/.local/share/pnpm"
+  case ":$PATH:" in
+    *":$PNPM_HOME/bin:"*) ;;
+    *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+  esac
+
   #-- Load custom Variables --#
   [ -f "$MS_ZSH_CONFIG/custom/01_variables.zsh" ] && source "$MS_ZSH_CONFIG/custom/01_variables.zsh"
 

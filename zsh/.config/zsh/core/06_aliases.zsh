@@ -35,6 +35,10 @@ function __ms_zsh_alias() {
   alias vi=nvim
   alias vim=nvim
 
+  #-- dev-coach aliases --#
+  alias c-tldr='coach tldr'
+  alias c-snip='coach snippet'
+
   alias :q=exit
 }
 
