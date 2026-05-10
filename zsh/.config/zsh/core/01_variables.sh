@@ -37,6 +37,10 @@ function ms_zsh_variables() {
     *":$PNPM_HOME:"*) ;;
     *) export PATH="$PNPM_HOME:$PATH" ;;
   esac
+  case ":$PATH:" in
+    *":$PNPM_HOME/bin:"*) ;;
+    *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+  esac
 
   #-- Load custom Variables --#
   [ -f "$MS_ZSH_CONFIG/custom/01_variables.zsh" ] && source "$MS_ZSH_CONFIG/custom/01_variables.zsh"
