@@ -35,6 +35,11 @@ function __ms_zsh_alias() {
   alias vi=nvim
   alias vim=nvim
 
+  #-- pi aliases --#
+  if command -v pi >/dev/null 2>&1; then
+    alias pi='TMPDIR=/tmp pi'  # use shorter tmpdir for pi-nvim-bridge socket
+  fi
+
   #-- dev-coach aliases --#
   alias c-tldr='coach tldr'
   alias c-snip='coach snippet'
