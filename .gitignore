@@ -9,3 +9,6 @@ zsh/.config/nnn/.lastd
 
 **/*.zwc
 **/.DS_Store
+zsh/.config/tmux/sessions
+zsh/.config/tmux/resurrect
+zsh/.config/tmux/plugins

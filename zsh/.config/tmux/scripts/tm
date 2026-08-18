@@ -1,0 +1,183 @@
+#!/bin/sh
+# tm — POSIX tmux session manager
+# Usage: tm <command> [name]
+
+SESS_DIR="$HOME/.config/tmux/sessions"
+mkdir -p "$SESS_DIR"
+
+usage() {
+    printf "Usage: tm <command> [name]\n"
+    printf "  list              list saved & running sessions\n"
+    printf "  save [name]       snapshot current session layout\n"
+    printf "  load <name>       recreate session from snapshot\n"
+    printf "  resume [name]     attach existing, load saved, or create new\n"
+    printf "  kill <name>       kill a running session\n"
+    printf "  edit <name>       edit a saved session file\n"
+    printf "  rm <name>         delete a saved session file\n"
+    printf "  project [dir]     run .tmux in dir or cwd\n"
+}
+
+cmd_list() {
+    printf "== Saved ==\n"
+    if [ -d "$SESS_DIR" ] && [ "$(ls "$SESS_DIR" 2>/dev/null)" ]; then
+        ls "$SESS_DIR" | sed 's/\.sh$//'
+    else
+        printf "  (none)\n"
+    fi
+    printf "\n== Running ==\n"
+    tmux list-sessions 2>/dev/null || printf "  (none)\n"
+}
+
+cmd_save() {
+    name="${1:-$(tmux display-message -p '#S')}"
+    file="$SESS_DIR/${name}.sh"
+    sess="$(tmux display-message -p '#S')"
+
+    # Header
+    cat > "$file" <<EOF
+#!/bin/sh
+# Session: $name
+# Saved: $(date '+%Y-%m-%d %H:%M')
+SESSION="$name"
+
+# Kill existing if needed
+tmux has-session -t "\$SESSION" 2>/dev/null && {
+    printf "Session '\$SESSION' already running. Attach? [y/N] "
+    read -r ans
+    case "\$ans" in y|Y) tmux attach -t "\$SESSION"; exit 0 ;; esac
+    exit 1
+}
+
+EOF
+
+    # Capture windows and panes
+    tmux list-windows -t "$sess" -F '#{window_index}|#{window_name}|#{window_layout}' | \
+    while IFS='|' read -r widx wname wlayout; do
+        if [ "$widx" = "1" ]; then
+            first_pane_path="$(tmux display-message -t "${sess}:${widx}.1" -p '#{pane_current_path}')"
+            printf 'tmux new-session -d -s "$SESSION" -c "%s"\n' "$first_pane_path" >> "$file"
+            printf 'tmux rename-window -t "$SESSION:1" "%s"\n' "$wname" >> "$file"
+        else
+            first_pane_path="$(tmux display-message -t "${sess}:${widx}.1" -p '#{pane_current_path}')"
+            printf 'tmux new-window -t "$SESSION" -n "%s" -c "%s"\n' "$wname" "$first_pane_path" >> "$file"
+        fi
+
+        # Capture extra panes (splits)
+        pane_count="$(tmux list-panes -t "${sess}:${widx}" -F '#{pane_index}' | wc -l | tr -d ' ')"
+        if [ "$pane_count" -gt 1 ]; then
+            tmux list-panes -t "${sess}:${widx}" -F '#{pane_index}|#{pane_current_path}' | \
+            while IFS='|' read -r pidx ppath; do
+                [ "$pidx" = "1" ] && continue
+                printf 'tmux split-window -t "$SESSION:%s" -c "%s"\n' "$wname" "$ppath" >> "$file"
+            done
+            printf 'tmux select-layout -t "$SESSION:%s" "%s"\n' "$wname" "$wlayout" >> "$file"
+        fi
+
+        printf '\n' >> "$file"
+    done
+
+    # Footer
+    cat >> "$file" <<'EOF'
+tmux select-window -t "$SESSION:1"
+EOF
+
+    chmod +x "$file"
+    tmux display-message " Saved: $file"
+}
+
+cmd_load() {
+    name="${1:?Error: need a session name}"
+    file="$SESS_DIR/${name}.sh"
+
+    if [ ! -f "$file" ]; then
+        printf "Error: no saved session '%s'\n" "$name" >&2
+        printf "Available: "; ls "$SESS_DIR" 2>/dev/null | sed 's/\.sh$//' | tr '\n' ' '
+        printf "\n"
+        return 1
+    fi
+
+    sh "$file"
+
+    # Attach or switch
+    if [ -n "$TMUX" ]; then
+        tmux switch-client -t "$name"
+    else
+        tmux attach -t "$name"
+    fi
+}
+
+cmd_resume() {
+    name="${1:-main}"
+
+    # 1. Running? Attach.
+    if tmux has-session -t "$name" 2>/dev/null; then
+        if [ -n "$TMUX" ]; then
+            tmux switch-client -t "$name"
+        else
+            tmux attach -t "$name"
+        fi
+        return
+    fi
+
+    # 2. Saved? Load.
+    if [ -f "$SESS_DIR/${name}.sh" ]; then
+        cmd_load "$name"
+        return
+    fi
+
+    # 3. Create new.
+    if [ -n "$TMUX" ]; then
+        tmux new-session -d -s "$name"
+        tmux switch-client -t "$name"
+    else
+        tmux new-session -s "$name"
+    fi
+}
+
+cmd_kill() {
+    name="${1:?Error: need a session name}"
+    tmux kill-session -t "$name" && printf " Killed: %s\n" "$name"
+}
+
+cmd_edit() {
+    name="${1:?Error: need a session name}"
+    ${EDITOR:-vi} "$SESS_DIR/${name}.sh"
+}
+
+cmd_rm() {
+    name="${1:?Error: need a session name}"
+    file="$SESS_DIR/${name}.sh"
+    if [ -f "$file" ]; then
+        rm "$file" && printf " Removed: %s\n" "$name"
+    else
+        printf "Error: '%s' not found\n" "$name" >&2
+        return 1
+    fi
+}
+
+cmd_project() {
+    dir="${1:-.}"
+    dir="$(cd "$dir" && pwd)"
+    proj_file="$dir/.tmux"
+
+    if [ -f "$proj_file" ]; then
+        sh "$proj_file"
+    else
+        printf "No .tmux file in %s\n" "$dir" >&2
+        return 1
+    fi
+}
+
+# ─── Main ───────────────────────────────────────────────────
+case "${1:-}" in
+    list)    cmd_list ;;
+    save)    shift; cmd_save "$@" ;;
+    load)    shift; cmd_load "$@" ;;
+    resume)  shift; cmd_resume "$@" ;;
+    kill)    shift; cmd_kill "$@" ;;
+    edit)    shift; cmd_edit "$@" ;;
+    rm)      shift; cmd_rm "$@" ;;
+    project) shift; cmd_project "$@" ;;
+    -h|--help) usage ;;
+    *)       usage; exit 1 ;;
+esac
