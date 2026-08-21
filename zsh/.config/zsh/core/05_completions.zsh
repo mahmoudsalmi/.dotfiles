@@ -10,19 +10,6 @@ function __update_fpath() {
 
   #-- OpenSpec completions --#
   [ -d "$HOME/.zsh/completions" ] && fpath=("$HOME/.zsh/completions" $fpath)
-
-  #-- Add Nix profiles to fpath if nix command is available --#
-  if command -v nix >/dev/null 2>&1; then
-    local_options_status=$(setopt | grep local_options)
-    shwordsplit_status=$(setopt | grep shwordsplit)
-    setopt local_options shwordsplit
-    for profile in $NIX_PROFILES; do
-      profile_path="$profile/share/zsh/site-functions"
-      [ -d "$profile_path" ] && fpath+=("$profile_path")
-    done
-    [[ -z "$local_options_status" ]] && unsetopt local_options
-    [[ -z "$shwordsplit_status" ]] && unsetopt shwordsplit
-  fi
   
   #-- deduplicate fpath --#
   fpath=(${(u)fpath})
