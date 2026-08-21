@@ -106,16 +106,6 @@ function __ms_zsh_startup_dev_tools() {
     znap fpath _jf 'jf completion zsh'
   fi
 
-  # ---------------------------------------------------------- OBRSTACK [PATH]
-  if [[ -d "$HOME/.orbstack" ]]; then
-    znap fpath orbctl 'orbctl completion zsh'
-
-    if [[ -f "$HOME/.orbstack/ssh/config" && ! -f "$HOME/.ssh/config.d/orbstack" ]]; then
-      mkdir -p $HOME/.ssh/config.d
-      ln -s "$HOME/.orbstack/ssh/config" "$HOME/.ssh/config.d/orbstack"
-    fi
-  fi
-
   # ---------------------------------------------------------- Go [PATH]
   [ -d $HOME/go/bin ] && export PATH=$HOME/go/bin:$PATH
 
