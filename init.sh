@@ -14,7 +14,7 @@ mkdir -p "$HOME/.config/nvim"
 
 mkdir -p "$HOME/.config/zsh"
 mkdir -p "$HOME/.config/zsh/custom"
-configFile="$HOME/.config/zsh/custom/01_variablesex.zsh"
+configFile="$HOME/.config/zsh/custom/01_variables.zsh"
 [ -f "$configFile" ] || printf "#\n# SET here custom variables\n#\n" > "$configFile"
 configFile="$HOME/.config/zsh/custom/02_plugins.zsh"
 [ -f "$configFile" ] || printf "#\n# Add here custom plugins\n#\n" > "$configFile"
