@@ -13,8 +13,13 @@ function ms_zsh_variables() {
   export EDITOR='nvim'
   export SHELL="/bin/zsh"
   export TERM='xterm-256color'
-  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-  export MANROFFOPT="-c"
+  if command -v bat >/dev/null 2>&1; then
+    export MANPAGER="sh -c 'col -bx | bat --language man --style plain --paging always --squeeze-blank --pager \"less -RFX\"'"
+    export MANROFFOPT="-c"
+  elif command -v batcat >/dev/null 2>&1; then
+    export MANPAGER="sh -c 'col -bx | batcat --language man --style plain --paging always --squeeze-blank --pager \"less -RFX\"'"
+    export MANROFFOPT="-c"
+  fi
 
   #-- History in cache directory --#
   export HISTFILE=~/.cache/zsh/history
@@ -28,8 +33,8 @@ function ms_zsh_variables() {
   export MS_GIT_REPOS="$HOME/msdata/git/"
 
   #-- docker-tools Variables --#
+  # TODO: adapt DOCKER_TOOLS app to new OCI naming convention
   export DOCKER_TOOLS_VOLUMES_BKP="$HOME/_docker/_volumes/"
-  #export DOCKER_TOOLS_CONTAINER="$HOME/.rd/bin/nerdctl"
 
   #-- Load custom Variables --#
   [ -f "$MS_ZSH_CONFIG/custom/01_variables.zsh" ] && source "$MS_ZSH_CONFIG/custom/01_variables.zsh"

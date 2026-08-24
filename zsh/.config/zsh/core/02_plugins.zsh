@@ -56,7 +56,5 @@ function ms_zsh_plugins_load_completions() {
 #   - load plugins that need completions be loaded
 # -------------------------------------------------
 function ms_zsh_plugins_load_post_completions() {
-  # Disabled: autopair conflicts with IntelliJ Copilot and adds 62ms
-  # znap source "hlissner/zsh-autopair"
   znap source "atuinsh/atuin"
 }
