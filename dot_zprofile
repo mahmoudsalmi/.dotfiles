@@ -1,0 +1,5 @@
+# Login profiles may reset PATH after .zshenv (notably Alpine /etc/profile).
+# Reapply our silent, idempotent PATH setup after the system login profile.
+if [[ -r "${ZDOTDIR:-$HOME}/.zshenv" ]]; then
+  source "${ZDOTDIR:-$HOME}/.zshenv"
+fi

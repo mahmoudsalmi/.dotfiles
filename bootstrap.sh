@@ -139,7 +139,7 @@ fi
 run mise exec -- chezmoi init --branch "$dotfiles_branch" "$dotfiles_repo"
 
 # Back up existing shell entry files once before chezmoi applies its versions.
-for entry in "${ZDOTDIR:-$HOME}/.zshrc" "${ZDOTDIR:-$HOME}/.zshenv"; do
+for entry in "${ZDOTDIR:-$HOME}/.zshrc" "${ZDOTDIR:-$HOME}/.zshenv" "${ZDOTDIR:-$HOME}/.zprofile"; do
     if [ "$dry_run" = yes ]; then
         log "[dry-run] Back up $entry if present and not already backed up."
     elif [ -e "$entry" ] && [ ! -e "$entry.pre-bootstrap" ]; then

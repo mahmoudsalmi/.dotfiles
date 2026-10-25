@@ -38,7 +38,7 @@ The bootstrap:
 3. Initializes chezmoi from this repository's migration branch. An existing
    checkout must match the requested origin URL and branch; it is not pulled
    or switched automatically.
-4. Backs up existing `.zshrc`/`.zshenv` once, then applies configuration,
+4. Backs up existing `.zshrc`/`.zshenv`/`.zprofile` once, then applies configuration,
    including pinned Zsh and tmux plugin archives.
 5. Runs `mise install` against the restored global tool configuration.
 6. Rebuilds bat's theme cache when bat is installed.
@@ -122,6 +122,9 @@ restoration has been verified after reboot.
 ```sh
 ssh -t machine tmux
 ```
+
+`.zprofile` reapplies that PATH setup after system login profiles, which can
+reset PATH on Alpine.
 
 Zsh modules cover environment, shared history, completions, aliases, vi/fzf
 widgets, Starship, Atuin and zoxide. Plugins load from local files; startup
