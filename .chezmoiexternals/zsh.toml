@@ -1,0 +1,14 @@
+# BEGIN managed Zsh plugin archives
+# Fixed release commits: updating a plugin is an explicit configuration change.
+[".config/zsh/plugins/zsh-autosuggestions"]
+    type = "archive"
+    url = "https://github.com/zsh-users/zsh-autosuggestions/archive/e52ee8ca55bcc56a17c828767a3f98f22a68d4eb.tar.gz"
+    exact = true
+    stripComponents = 1
+
+[".config/zsh/plugins/zsh-syntax-highlighting"]
+    type = "archive"
+    url = "https://github.com/zsh-users/zsh-syntax-highlighting/archive/db085e4661f6aafd24e5acb5b2e17e4dd5dddf3e.tar.gz"
+    exact = true
+    stripComponents = 1
+# END managed Zsh plugin archives

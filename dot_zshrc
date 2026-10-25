@@ -16,3 +16,21 @@ unset _ms_module
 if [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh" ]]; then
   source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh"
 fi
+
+# Plugins are downloaded by chezmoi apply, never by shell startup.
+# Load after all widgets and local overrides; syntax highlighting must be last.
+if (( ! ${+ZSH_AUTOSUGGEST_STRATEGY} )); then
+  ZSH_AUTOSUGGEST_STRATEGY=(history)
+fi
+if (( ! ${+ZSH_AUTOSUGGEST_USE_ASYNC} )); then
+  ZSH_AUTOSUGGEST_USE_ASYNC=1
+fi
+_ms_plugins="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/plugins"
+if [[ -r "$_ms_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+  source "$_ms_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
+  bindkey -M viins '^ ' autosuggest-accept
+fi
+if [[ -r "$_ms_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]]; then
+  source "$_ms_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+fi
+unset _ms_plugins

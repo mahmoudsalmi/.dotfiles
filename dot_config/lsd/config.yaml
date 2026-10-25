@@ -1,0 +1,10 @@
+color:
+  when: always
+  theme: custom
+icons:
+  when: auto
+  theme: fancy
+  separator: "  "
+date: +%Y-%m-%d %H:%M:%S
+hyperlink: always
+permission: rwx

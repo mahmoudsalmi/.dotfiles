@@ -1,0 +1,5 @@
+# Local command history; no account or synchronization configured here.
+auto_sync = false
+update_check = false
+# Select a command first, then review it at the prompt before executing it.
+enter_accept = false
