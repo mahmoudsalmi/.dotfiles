@@ -26,3 +26,7 @@ zoxide = "0.10.0"
 [tasks."install:packages"]
 description = "Install platform packages (btop via Homebrew on macOS)"
 run = 'sh "${XDG_CONFIG_HOME:-$HOME/.config}/mise/scripts/install-packages.sh"'
+
+[tasks."services:macos"]
+description = "Install macOS launchd limits (maxfiles, maxproc); requires sudo"
+run = 'sh "${XDG_CONFIG_HOME:-$HOME/.config}/mise/scripts/install-macos-services.sh"'

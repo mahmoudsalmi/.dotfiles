@@ -18,3 +18,9 @@ README.md
 .config/kitty
 .config/wezterm
 {{- end }}
+
+{{- if ne .chezmoi.os "darwin" }}
+
+# macOS launchd service definitions, only used by `mise run services:macos`.
+.config/mise/macos-services
+{{- end }}
