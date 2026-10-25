@@ -1,0 +1,11 @@
+{{- /* Asked once per machine; stored under [data] in ~/.config/chezmoi/chezmoi.toml. */ -}}
+{{- $terminals := false -}}
+{{- if stdinIsATTY -}}
+{{-   $terminals = promptBoolOnce . "terminals" "Install terminal emulator configs (Alacritty, Ghostty, Kitty, WezTerm)" -}}
+{{- end -}}
+[data]
+    terminals = {{ $terminals }}
+
+[merge]
+    command = "nvim"
+    args = ["-d", "{{ `{{ .Destination }}` }}", "{{ `{{ .Source }}` }}"]

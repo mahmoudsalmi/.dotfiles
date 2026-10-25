@@ -9,3 +9,12 @@ README.md
 .config/tmux/sessions
 .config/tmux/sessions/**
 .gitconfig.local
+
+{{- if not .terminals }}
+
+# Terminal emulator configs, installed only when chosen during chezmoi init.
+.config/alacritty
+.config/ghostty
+.config/kitty
+.config/wezterm
+{{- end }}
