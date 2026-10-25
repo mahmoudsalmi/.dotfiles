@@ -1,0 +1,35 @@
+#!/bin/sh
+# sd-greeting: print the SD banner with host, last chezmoi commit date and system info.
+# Colours are disabled when stdout is not a terminal or NO_COLOR is set.
+
+esc=$(printf '\033')
+black="$esc[90m" blue="$esc[34m" bright_blue="$esc[94m" default="$esc[39m" reset="$esc[0m"
+if [ -n "${NO_COLOR:-}" ] || [ ! -t 1 ]; then
+    black= blue= bright_blue= default= reset=
+fi
+
+host=$(uname -n)
+
+# Date of the last commit in the chezmoi source repository.
+source_dir=$(chezmoi source-path 2>/dev/null) || source_dir=
+date=$(git -C "${source_dir:-/nonexistent}" log -1 --format=%cs 2>/dev/null) || date=
+: "${date:=unknown}"
+
+# System summary: distribution and kernel.
+case $(uname -s) in
+    Darwin) distro="macOS $(sw_vers -productVersion 2>/dev/null)" ;;
+    *) distro=$(. /etc/os-release 2>/dev/null; printf '%s' "${PRETTY_NAME:-$(uname -s)}") ;;
+esac
+kernel=$(uname -r)
+
+printf '\n'
+printf '%s███████╗      %s██████╗ ███████╗██╗   ██╗%s\n' "$black" "$blue" "$reset"
+printf '%s██╔════╝      %s██╔══██╗██╔════╝██║   ██║%s\n' "$black" "$blue" "$reset"
+printf '%s███████╗█████╗%s██║  ██║█████╗  ██║   ██║%s\n' "$black" "$blue" "$reset"
+printf '%s╚════██║╚════╝%s██║  ██║██╔══╝  ╚██╗ ██╔╝%s\n' "$black" "$blue" "$reset"
+printf '%s███████║      %s██████╔╝███████╗ ╚████╔╝ %s\n' "$black" "$blue" "$reset"
+printf '%s╚══════╝      %s╚═════╝ ╚══════╝  ╚═══╝  %s\n' "$black" "$blue" "$reset"
+printf '\n'
+printf '%s:: %s :: %s%s%s\n' "$bright_blue" "$host" "$default" "$date" "$reset"
+printf '%s | %s · kernel %s%s%s\n' "$black" "$distro" "$kernel" "$default" "$reset"
+printf '\n'
