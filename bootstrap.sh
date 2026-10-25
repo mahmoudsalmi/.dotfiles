@@ -68,10 +68,12 @@ case $os in
         esac
         # Detect the distribution's package manager; no Homebrew needed on Linux.
         if has apk; then
-            log 'Prerequisites: apk add --no-cache git bash curl ca-certificates tar gzip zsh shadow musl-utils'
+            log 'Prerequisites: apk add --no-cache git bash curl ca-certificates tar gzip zsh shadow musl-utils gcompat'
             # shadow provides chsh; musl-utils provides getent.
+            # Some mise/aqua recipes select glibc binaries, including chezmoi.
+            # gcompat supplies the glibc loader/API compatibility on musl.
             # The official mise installer detects musl and selects its musl build.
-            admin apk add --no-cache git bash curl ca-certificates tar gzip zsh shadow musl-utils
+            admin apk add --no-cache git bash curl ca-certificates tar gzip zsh shadow musl-utils gcompat
         elif has pacman; then
             log 'Prerequisites: pacman -S --needed git curl ca-certificates tar gzip zsh util-linux'
             # Use the existing package database; do not introduce a partial upgrade

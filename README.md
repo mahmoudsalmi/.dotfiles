@@ -24,7 +24,11 @@ Linux requires a user with sudo or doas privileges. On a fresh Mac, complete
 Apple command line tools installation if requested, then rerun. On Arch,
 update your system normally before bootstrapping; the script does not perform
 a full system upgrade or refresh pacman's databases. On Alpine enable your
-release's community repository for shadow. Run inside the Linux distribution
+release's community repository for shadow. The bootstrap also installs
+`gcompat`: some mise-managed release binaries require the glibc loader, while
+Alpine uses musl. This compatibility layer does not guarantee every upstream
+binary will work; the fresh-install test must still validate the full toolset.
+Run inside the Linux distribution
 for WSL. Custom terminal profiles must not explicitly force Bash.
 
 The bootstrap:
