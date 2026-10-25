@@ -1,0 +1,9 @@
+[tools]
+bat = "0.26.1"
+chezmoi = "2.73.3"
+fd = "10.5.0"
+fzf = "0.74.5"
+lsd = "1.2.0"
+neovim = "0.12.6"
+ripgrep = "15.2.0"
+tmux = "3.7c"

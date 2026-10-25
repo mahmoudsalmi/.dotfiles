@@ -1,8 +1,18 @@
-# mise + chezmoi bootstrap
-export PATH="$HOME/.local/bin:$PATH"
-if command -v mise >/dev/null 2>&1; then
-    eval "$(mise activate zsh)"
-fi
-# end mise + chezmoi bootstrap
+# Interactive Zsh configuration managed by chezmoi.
+[[ -o interactive ]] || return
 
-# Development tool versions are managed by mise.
+# Use mise before testing for installed tools. Never install tools at startup.
+if (( $+commands[mise] )); then
+  eval "$(mise activate zsh)"
+fi
+
+# Modules are deliberately ordered; machine-specific settings load last.
+for _ms_module in "${XDG_CONFIG_HOME:-$HOME/.config}"/zsh/rc.d/*.zsh(N); do
+  source "$_ms_module"
+done
+unset _ms_module
+
+# Keep this file outside version control; use it for host-specific settings.
+if [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh" ]]; then
+  source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh"
+fi
