@@ -51,7 +51,9 @@ _ms_complete_tool() {
         elif (( $+commands[mise] )); then
           # Some release archives ship completion files instead of a generator.
           # Limit discovery to this tool's install directory, on first use only.
-          root=$(command mise where "$tool" 2>/dev/null) || root=''
+          local install_tool=$tool
+          [[ $tool == ya ]] && install_tool=yazi
+          root=$(command mise where "$install_tool" 2>/dev/null) || root=''
           if [[ -n $root && -d $root ]]; then
             candidates=("$root"/**/_${tool}(N.) "$root"/**/${tool}.zsh(N.))
             for candidate in "${candidates[@]}"; do
@@ -90,7 +92,7 @@ _ms_complete_tool() {
   "$handler" "$@"
 }
 
-for _ms_tool in mise chezmoi rg fd fzf bat lsd starship atuin zoxide gh; do
+for _ms_tool in mise chezmoi rg fd fzf bat lsd starship atuin zoxide gh btop fastfetch lazygit yazi ya; do
   if (( $+commands[$_ms_tool] )); then
     compdef _ms_complete_tool "$_ms_tool"
   fi
