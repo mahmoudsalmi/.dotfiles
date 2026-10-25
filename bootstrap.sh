@@ -150,6 +150,9 @@ run mise exec -- chezmoi apply
 
 # The restored user-global config now declares the complete pinned tool list.
 run mise install
+if [ "$os" = Darwin ]; then
+    run mise run install:packages
+fi
 if [ "$dry_run" = yes ]; then
     run mise exec -- bat cache --build
 elif mise which bat >/dev/null 2>&1; then

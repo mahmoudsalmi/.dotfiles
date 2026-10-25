@@ -7,6 +7,9 @@ for _ms_completions in \
   /usr/local/share/zsh/site-functions; do
   [[ -d $_ms_completions ]] && fpath=("$_ms_completions" $fpath)
 done
+if [[ -n ${_MS_HOMEBREW_PREFIX:-} && -d $_MS_HOMEBREW_PREFIX/share/zsh/site-functions ]]; then
+  fpath=("$_MS_HOMEBREW_PREFIX/share/zsh/site-functions" $fpath)
+fi
 unset _ms_completions
 
 _ms_completion_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"

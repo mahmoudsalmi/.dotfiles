@@ -16,3 +16,12 @@ starship = "1.27.0"
 tmux = "3.7c"
 yazi = "26.9.1"
 zoxide = "0.10.0"
+
+# Native packages have no mise shims; Zsh adds the Homebrew prefix to PATH.
+# Homebrew provides its current formula version, rather than a version pin.
+[bootstrap.packages]
+"brew:btop" = { os = "macos" }
+
+[tasks."install:packages"]
+description = "Install platform packages (btop via Homebrew on macOS)"
+run = 'sh "${XDG_CONFIG_HOME:-$HOME/.config}/mise/scripts/install-packages.sh"'

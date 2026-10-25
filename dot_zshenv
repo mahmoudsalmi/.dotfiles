@@ -1,6 +1,21 @@
 # Read by every Zsh, including non-interactive SSH commands. Keep this silent.
 # Respect XDG/mise overrides without setting TERM, SHELL, or locale variables.
 typeset -U path
+# Detect installed Homebrew, including packages installed by mise without brew.
+# Filesystem checks only: never invoke brew during shell startup.
+typeset -g _MS_HOMEBREW_PREFIX=''
+for _ms_brew_prefix in "${HOMEBREW_PREFIX:-}" \
+  "${commands[brew]:h:h}" /opt/homebrew /usr/local /home/linuxbrew/.linuxbrew; do
+  if [[ $_ms_brew_prefix == /* && ( -x $_ms_brew_prefix/bin/brew || -d $_ms_brew_prefix/Cellar ) ]]; then
+    _MS_HOMEBREW_PREFIX=$_ms_brew_prefix
+    break
+  fi
+done
+unset _ms_brew_prefix
+if [[ -n $_MS_HOMEBREW_PREFIX ]]; then
+  export HOMEBREW_PREFIX=$_MS_HOMEBREW_PREFIX
+  path=("$_MS_HOMEBREW_PREFIX/bin" "$_MS_HOMEBREW_PREFIX/sbin" $path)
+fi
 path=(
   "${MISE_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/mise}/shims"
   "$HOME/.local/bin"

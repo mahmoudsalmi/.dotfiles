@@ -41,8 +41,10 @@ The bootstrap:
 4. Backs up existing `.zshrc`/`.zshenv`/`.zprofile` once, then applies configuration,
    including pinned Zsh and tmux plugin archives.
 5. Runs `mise install` against the restored global tool configuration.
-6. Rebuilds bat's theme cache when bat is installed.
-7. Changes your account's login shell to Zsh if needed.
+6. Installs macOS native packages with `mise run install:packages` (btop via
+   Homebrew-compatible packages on Apple Silicon; installed Homebrew on Intel).
+7. Rebuilds bat's theme cache when bat is installed.
+8. Changes your account's login shell to Zsh if needed.
 
 Existing conflicting files may prompt during chezmoi apply. Network access is
 needed for installers, repository cloning, plugins and tools. The supported
@@ -137,3 +139,25 @@ Tmux resurrect saves with prefix then Shift-W and restores with prefix then
 Shift-E. Continuum saves every ten minutes and restores when a new tmux server
 starts. The restore setting does not itself start tmux at OS boot, and it does
 not preserve arbitrary process memory or unsaved editor state.
+
+## Homebrew on macOS
+
+Zsh detects an existing Homebrew prefix and adds its `bin`/`sbin` to PATH,
+behind mise shims and `~/.local/bin`. Its Zsh site-functions directory is added
+before compinit. Apple Silicon, Intel, Linuxbrew and an explicit
+`HOMEBREW_PREFIX` are supported. Startup uses filesystem checks only.
+
+`btop` remains pinned under mise `[tools]` on Linux. On macOS,
+`[bootstrap.packages]` declares `brew:btop`; install it explicitly with:
+
+```sh
+mise run install:packages
+```
+
+On Apple Silicon this runs `mise bootstrap packages apply --manager brew --yes`.
+Mise installs Homebrew-compatible bottles into `/opt/homebrew`, even without
+the `brew` executable. These packages have no mise shims. On Intel Macs, where
+mise's native brew manager is unavailable, the task uses installed Homebrew.
+Homebrew's current btop formula is installed, rather than pinning Linux's
+version. Existing installations are preserved; no automatic upgrades occur.
+The bootstrap runs this task on macOS; `mise install` alone does not.
