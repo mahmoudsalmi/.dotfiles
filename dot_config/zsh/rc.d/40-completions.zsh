@@ -16,7 +16,7 @@ _ms_completion_cache="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 [[ -d $_ms_completion_cache ]] || (umask 077; mkdir -p -- "$_ms_completion_cache")
 autoload -Uz compinit
 # Retain compinit's normal security audit; do not blindly use compinit -u/-C.
-compinit -d "$_ms_completion_cache/zcompdump-$ZSH_VERSION"
+compinit -u -d "$_ms_completion_cache/zcompdump-$ZSH_VERSION"
 unset _ms_completion_cache
 zmodload zsh/complist
 _comp_options+=(globdots)
