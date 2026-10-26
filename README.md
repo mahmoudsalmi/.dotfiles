@@ -26,10 +26,11 @@ update your system normally before bootstrapping; the script does not perform
 a full system upgrade or refresh pacman's databases. On Alpine enable your
 release's community repository for shadow. The bootstrap also installs
 `gcompat`: some mise-managed release binaries require the glibc loader, while
-Alpine uses musl. This compatibility layer does not guarantee every upstream
-binary will work; the fresh-install test must still validate the full toolset.
-Run inside the Linux distribution
-for WSL. Custom terminal profiles must not explicitly force Bash.
+Alpine uses musl. It installs a C toolchain on Linux so Neovim can compile its
+Tree-sitter parsers on first launch; macOS uses the Xcode command-line tools.
+These prerequisites do not guarantee every upstream binary will work; the
+fresh-install test must still validate the full toolset. Run inside the Linux
+distribution for WSL. Custom terminal profiles must not explicitly force Bash.
 
 The bootstrap:
 
@@ -40,11 +41,20 @@ The bootstrap:
    or switched automatically.
 4. Backs up existing `.zshrc`/`.zshenv`/`.zprofile` once, then applies configuration,
    including pinned Zsh and tmux plugin archives.
-5. Runs `mise install` against the restored global tool configuration.
+5. Runs `mise install` against the restored global tool configuration,
+   including the pinned Neovim release.
 6. Installs macOS native packages with `mise run install:packages` (btop via
    Homebrew-compatible packages on Apple Silicon; installed Homebrew on Intel).
 7. Rebuilds bat's theme cache when bat is installed.
 8. Changes your account's login shell to Zsh if needed.
+
+Neovim config is deployed to `~/.config/nvim`. On the first launch, lazy.nvim
+clones the plugins pinned in `lazy-lock.json`; Tree-sitter parsers are compiled
+when a Linux compiler is available (the bootstrap installs one). Plugin-backed
+language servers and formatters such as JDTLS, TypeScript LSP, `clangd`, and
+`clang-format` remain optional and need their respective tools installed.
+Markdown preview's browser app also needs Node.js/npm; its plugin build is
+skipped with a warning when npm is unavailable.
 
 Existing conflicting files may prompt during chezmoi apply. Network access is
 needed for installers, repository cloning, plugins and tools. The supported

@@ -68,28 +68,33 @@ case $os in
         esac
         # Detect the distribution's package manager; no Homebrew needed on Linux.
         if has apk; then
-            log 'Prerequisites: apk add --no-cache git bash curl ca-certificates tar gzip zsh shadow musl-utils gcompat'
-            # shadow provides chsh; musl-utils provides getent.
+            log 'Prerequisites: apk add --no-cache git bash curl ca-certificates tar gzip zsh shadow musl-utils gcompat build-base'
+            # shadow provides chsh; musl-utils provides getent. build-base is
+            # needed to compile Neovim Tree-sitter parsers on first launch.
             # Some mise/aqua recipes select glibc binaries, including chezmoi.
             # gcompat supplies the glibc loader/API compatibility on musl.
             # The official mise installer detects musl and selects its musl build.
-            admin apk add --no-cache git bash curl ca-certificates tar gzip zsh shadow musl-utils gcompat
+            admin apk add --no-cache git bash curl ca-certificates tar gzip zsh shadow musl-utils gcompat build-base
         elif has pacman; then
-            log 'Prerequisites: pacman -S --needed git curl ca-certificates tar gzip zsh util-linux'
-            # Use the existing package database; do not introduce a partial upgrade
-            # with -Sy or silently perform a full system upgrade with -Syu.
-            admin pacman -S --needed git curl ca-certificates tar gzip zsh util-linux
+            log 'Prerequisites: pacman -S --needed git curl ca-certificates tar gzip zsh util-linux base-devel'
+            # base-devel is needed to compile Neovim Tree-sitter parsers on first
+            # launch. Use the existing package database; do not introduce a partial
+            # upgrade with -Sy or silently perform a full system upgrade with -Syu.
+            admin pacman -S --needed git curl ca-certificates tar gzip zsh util-linux base-devel
         elif has dnf; then
             # Fedora may already provide curl through curl-minimal.
             # Do not replace a working provider with the conflicting curl package.
-            set -- git ca-certificates tar gzip zsh util-linux-user
+            set -- git ca-certificates tar gzip zsh util-linux-user gcc
             if ! has curl; then set -- "$@" curl; fi
+            # gcc is needed to compile Neovim Tree-sitter parsers on first launch.
             log "Prerequisites: dnf install -y $*"
             admin dnf install -y "$@"
         elif has apt-get; then
-            log 'Prerequisites: apt-get install git curl zsh passwd'
+            log 'Prerequisites: apt-get install git curl zsh passwd build-essential'
             admin apt-get update
-            admin apt-get install -y git curl ca-certificates tar gzip zsh passwd
+            # build-essential is needed to compile Neovim Tree-sitter parsers on
+            # first launch.
+            admin apt-get install -y git curl ca-certificates tar gzip zsh passwd build-essential
         else
             fail 'Supported Linux package managers: apk, pacman, dnf, apt-get.'
         fi
