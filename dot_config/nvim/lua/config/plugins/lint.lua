@@ -1,13 +1,6 @@
 -- lua/config/plugins/lint.lua
--- nvim-lint: async linting for Node TS/JS via eslint.
--- Deno diagnostics (deno lint) come from denols LSP (lint=true in init_options).
--- Java diagnostics come from JDTLS.
--- This plugin only adds eslint for Node projects.
---
--- eslint resolution order:
---   1. ./node_modules/.bin/eslint   (project-local, preferred)
---   2. eslint in PATH               (global fallback — rarely desired)
---   eslint is NOT run if node_modules/.bin/eslint is absent and nothing in PATH.
+-- nvim-lint: use project-local oxlint (preferred) or eslint for Node TS/JS.
+-- Deno diagnostics come from denols; Java diagnostics come from JDTLS.
 
 return {
   "mfussenegger/nvim-lint",
@@ -15,47 +8,63 @@ return {
   config = function()
     local lint = require("lint")
 
-    lint.linters_by_ft = {
-      typescript      = { "eslint" },
-      typescriptreact = { "eslint" },
-      javascript      = { "eslint" },
-      javascriptreact = { "eslint" },
-    }
+    -- Select the linter dynamically per project so Node projects without either
+    -- executable don't try to spawn a missing global `eslint`.
 
     local ts_fts = {
       typescript = true, typescriptreact = true,
       javascript = true, javascriptreact = true,
     }
 
+    local function lint_node_buffer(bufnr)
+      if not ts_fts[vim.bo[bufnr].filetype] then return end
+
+      local filename = vim.api.nvim_buf_get_name(bufnr)
+      local start_dir = filename ~= "" and vim.fs.dirname(filename) or vim.fn.getcwd()
+      local project = require("config.ts_lsp").detect(start_dir)
+      if project.type ~= "node" then return end
+
+      local bins = {
+        { name = "oxlint", path = project.root .. "/node_modules/.bin/oxlint" },
+        { name = "eslint", path = project.root .. "/node_modules/.bin/eslint" },
+      }
+      local selected
+      for _, candidate in ipairs(bins) do
+        if vim.fn.executable(candidate.path) == 1 then
+          selected = candidate
+          break
+        end
+      end
+      if not selected then
+        for _, name in ipairs({ "oxlint", "eslint" }) do
+          local path = vim.fn.exepath(name)
+          if path ~= "" then
+            selected = { name = name, path = path }
+            break
+          end
+        end
+      end
+      if not selected then
+        vim.notify_once(
+          "nvim-lint: install oxlint or eslint in this Node project to enable linting.",
+          vim.log.levels.WARN
+        )
+        return
+      end
+
+      lint.linters[selected.name].cmd = selected.path
+      lint.try_lint(selected.name, { cwd = project.root })
+    end
+
     vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
       callback = function(args)
-        local ft = vim.bo[args.buf].filetype
-        if not ts_fts[ft] then return end
-
-        -- Only lint Node projects; Deno diagnostics come from the denols LSP
-        if require("config.ts_lsp").detect().type ~= "node" then return end
-
-        -- Prefer the project-local eslint binary
-        local local_bin = vim.fn.getcwd() .. "/node_modules/.bin/eslint"
-        lint.linters.eslint.cmd = vim.fn.executable(local_bin) == 1
-          and local_bin
-          or "eslint"
-
-        -- try_lint errors if eslint is not available; swallow gracefully
-        local ok, err = pcall(lint.try_lint)
-        if not ok then
-          vim.notify("nvim-lint eslint: " .. err, vim.log.levels.WARN)
-        end
+        lint_node_buffer(args.buf)
       end,
     })
 
     -- Manual lint trigger
-    vim.keymap.set("n", "<leader>cl",
-      function()
-        local ok, err = pcall(lint.try_lint)
-        if not ok then vim.notify("lint: " .. err, vim.log.levels.WARN) end
-      end,
-      { desc = "Lint current file" }
-    )
+    vim.keymap.set("n", "<leader>cl", function()
+      lint_node_buffer(vim.api.nvim_get_current_buf())
+    end, { desc = "Lint current file" })
   end,
 }

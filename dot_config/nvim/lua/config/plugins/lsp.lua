@@ -34,11 +34,13 @@ return {
         },
       })
 
-      vim.lsp.config("lua_ls", { capabilities = capabilities })
+      -- Neovim 0.11+ native LSP config API: share completion capabilities
+      -- across servers, then keep server-specific overrides alongside them.
+      vim.lsp.config("*", { capabilities = capabilities })
+      vim.lsp.config("lua_ls", {})
       vim.lsp.config("bashls", {
-        filetypes = { 'bash', 'sh', 'zsh' }
+        filetypes = { "bash", "sh", "zsh" },
       })
-
       vim.lsp.config("clangd", {
         cmd = { "clangd", "--background-index", "--clang-tidy" },
       })
@@ -91,31 +93,20 @@ return {
           map("n", "<leader>cd", vim.diagnostic.open_float, "Diagnostic: float")
           map("n", "<leader>cq", vim.diagnostic.setloclist, "Diagnostic: location list")
 
-          -- ── LSP actions ────────────────────────────────────────────────────
+          -- ── LSP actions and navigation ─────────────────────────────────────
           map("n", "<leader>ca", vim.lsp.buf.code_action,    "Code Action")
           map("v", "<leader>ca", vim.lsp.buf.code_action,    "Code Action")
           map("n", "<leader>cr", vim.lsp.buf.rename,         "Rename Symbol")
           map("n", "<leader>ch", vim.lsp.buf.hover,          "Hover Docs")
           map("n", "<leader>cs", vim.lsp.buf.signature_help, "Signature Help")
+          map("n", "gd", vim.lsp.buf.definition,      "Go to Definition")
+          map("n", "gD", vim.lsp.buf.declaration,     "Go to Declaration")
+          map("n", "gi", vim.lsp.buf.implementation,  "Go to Implementation")
+          map("n", "gy", vim.lsp.buf.type_definition, "Go to Type Definition")
+          map("n", "gr", vim.lsp.buf.references,      "Go to References")
 
-          local client = vim.lsp.get_client_by_id(args.data.client_id)
-
-          -- ── LSP C-Lang navigation ────────────────────────────────────────────────────
-          if client and client.name ~= "clangd" then
-            -- LSP navigation
-            map("n", "gd", vim.lsp.buf.definition,      "Go to Definition")
-            map("n", "gD", vim.lsp.buf.declaration,     "Go to Declaration")
-            map("n", "gi", vim.lsp.buf.implementation,  "Go to Implementation")
-            map("n", "gy", vim.lsp.buf.type_definition, "Go to Type Definition")
-            map("n", "gr", vim.lsp.buf.references,      "Go to References")
-
-            -- clangd-specific
-            map(
-              "n",
-              "<leader>ch",
-              "<cmd>LspClangdSwitchSourceHeader<cr>",
-              "C: Switch Source/Header"
-            )
+          if client.name == "clangd" then
+            map("n", "<leader>cH", "<cmd>LspClangdSwitchSourceHeader<cr>", "C: Switch Source/Header")
           end
 
           -- ── Format ───────────────────────────────────────────────────────

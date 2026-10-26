@@ -41,17 +41,16 @@ local function parse_node_version_file(path)
   return raw ~= "v" and raw or nil
 end
 
---- Resolve the node binary for `version` inside fnm's node-versions tree.
---- Falls back to fnm's "default" alias, then bare "node" on PATH.
---- Returns (bin_path, version_label).
-local function resolve_node(version, fnm)
-  if fnm then
+--- Resolve Node from fnm, the project's active mise selection, or system PATH.
+--- Returns (absolute_bin_path, version_label), or (nil, nil) if unavailable.
+local function resolve_node(version, fnm, cwd)
+  if version and fnm then
     local bin = fnm .. "/node-versions/" .. version .. "/installation/bin/node"
     if vim.fn.executable(bin) == 1 then
-      return bin, version
+      return bin, version .. " (fnm)"
     end
     vim.notify(
-      ("nvim ts: .node-version wants %s but not found in fnm. Falling back."):format(version),
+      ("nvim ts: .node-version wants %s but it is not installed in fnm. Falling back."):format(version),
       vim.log.levels.WARN
     )
   end
@@ -64,7 +63,31 @@ local function resolve_node(version, fnm)
     end
   end
 
-  return "node", "system PATH"
+  -- Resolve the active mise selection to its real binary so the Mason server
+  -- wrapper cannot accidentally re-enter an unset or differently selected shim.
+  local mise = vim.fn.exepath("mise")
+  if mise ~= "" then
+    local result = vim.system({ mise, "which", "node" }, { cwd = cwd, text = true }):wait()
+    local bin = vim.trim(result.stdout or "")
+    if result.code == 0 and bin ~= "" and vim.fn.executable(bin) == 1 then
+      local version_result = vim.system({ bin, "--version" }, { cwd = cwd, text = true }):wait()
+      local version_out = vim.trim(version_result.stdout or "")
+      return bin, version_out ~= "" and (version_out .. " (mise)") or "mise"
+    end
+  end
+
+  -- Accept a system Node only if it can actually run. This rejects an unset
+  -- mise shim, which is executable but exits with an error when invoked.
+  local bin = vim.fn.exepath("node")
+  if bin ~= "" then
+    local result = vim.system({ bin, "--version" }, { cwd = cwd, text = true }):wait()
+    local version_out = vim.trim(result.stdout or "")
+    if result.code == 0 then
+      return bin, version_out ~= "" and (version_out .. " (PATH)") or "system PATH"
+    end
+  end
+
+  return nil, nil
 end
 
 -- ── Detection ─────────────────────────────────────────────────────────────────
@@ -81,7 +104,10 @@ end
 ---     node_bin_dir = "/abs/path/to/node/../bin",  ← prepend to PATH
 ---     version_file = "/abs/path/.node-version" | nil }
 function M.detect(cwd)
-  cwd = cwd or vim.fn.getcwd()
+  if not cwd or cwd == "" then
+    local filename = vim.api.nvim_buf_get_name(0)
+    cwd = filename ~= "" and vim.fs.dirname(filename) or vim.fn.getcwd()
+  end
 
   -- ── Deno: wins if deno.json / deno.jsonc is anywhere in the tree ───────────
   local deno_conf = vim.fs.find({ "deno.json", "deno.jsonc" }, {
@@ -112,19 +138,14 @@ function M.detect(cwd)
     if ver_file then
       local v = parse_node_version_file(ver_file)
       if v then
-        node_bin, node_version = resolve_node(v, fnm)
+        node_bin, node_version = resolve_node(v, fnm, root)
       end
     end
 
-    -- No version file (or parse failed): fall back to fnm default / PATH
+    -- No usable .node-version (or no fnm): use the active mise selection,
+    -- then a working system Node if available.
     if not node_bin then
-      if fnm then
-        local default = fnm .. "/aliases/default/bin/node"
-        node_bin     = vim.fn.executable(default) == 1 and default or "node"
-        node_version = "default (fnm)"
-      else
-        node_bin, node_version = "node", "system PATH"
-      end
+      node_bin, node_version = resolve_node(nil, fnm, root)
     end
 
     return {
@@ -132,12 +153,19 @@ function M.detect(cwd)
       root         = root,
       node_bin     = node_bin,
       node_version = node_version,
-      node_bin_dir = vim.fs.dirname(node_bin),
+      node_bin_dir = node_bin and vim.fs.dirname(node_bin) or nil,
       version_file = ver_file,
     }
   end
 
-  return { type = "unknown" }
+  local node_bin, node_version = resolve_node(nil, find_fnm_dir(), cwd)
+  return {
+    type = "unknown",
+    root = cwd,
+    node_bin = node_bin,
+    node_version = node_version,
+    node_bin_dir = node_bin and vim.fs.dirname(node_bin) or nil,
+  }
 end
 
 -- ── LSP startup ───────────────────────────────────────────────────────────────
@@ -188,6 +216,14 @@ function M.start()
 
   -- ── Node ───────────────────────────────────────────────────────────────────
   elseif rt.type == "node" then
+    if not rt.node_bin then
+      vim.notify(
+        "nvim ts [node]: no working Node.js runtime found. Select/install one with mise (for example, `mise use node@lts` in the project), or configure fnm.",
+        vim.log.levels.WARN
+      )
+      return
+    end
+
     local ts_bin = vim.fn.stdpath("data") .. "/mason/bin/typescript-language-server"
     if vim.fn.executable(ts_bin) ~= 1 then
       vim.notify(
@@ -244,11 +280,13 @@ function M.start()
   -- ── Unknown (no package.json, tsconfig.json, or deno.json found) ───────────
   else
     local ts_bin = vim.fn.stdpath("data") .. "/mason/bin/typescript-language-server"
-    if vim.fn.executable(ts_bin) == 1 then
+    if vim.fn.executable(ts_bin) == 1 and rt.node_bin then
+      local path_env = rt.node_bin_dir .. ":" .. (os.getenv("PATH") or "")
       vim.lsp.start({
         name         = "ts_ls",
         cmd          = { ts_bin, "--stdio" },
-        root_dir     = vim.fn.getcwd(),
+        cmd_env      = { PATH = path_env },
+        root_dir     = rt.root,
         capabilities = caps,
         on_attach    = on_attach,
       })

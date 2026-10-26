@@ -5,11 +5,10 @@
 -- Formatters:
 --   Java       → JDTLS (via lsp_format = "prefer")
 --   Deno TS/JS → deno fmt     (only when deno.json found in project tree)
---   Node TS/JS → eslint --fix (only when package.json found, no deno.json)
+--   Node TS/JS → oxfmt (only when package.json found, no deno.json)
 --   Everything else → LSP fallback if the server supports textDocument/formatting
 --
--- Install:  no extra Mason packages needed for Java/Deno.
---           Node: pnpm/npm install eslint in the project (uses ./node_modules/.bin/eslint)
+-- Install:  Node projects should provide oxfmt in their local node_modules.
 
 return {
   "stevearc/conform.nvim",
@@ -28,10 +27,13 @@ return {
             return require("config.ts_lsp").detect(ctx.dirname).type == "deno"
           end,
         },
-        eslint = {
-          -- Only run in Node projects (package.json / tsconfig.json, no deno.json)
+        oxfmt = {
+          -- Only run when the Node project has oxfmt installed.
           condition = function(_, ctx)
-            return require("config.ts_lsp").detect(ctx.dirname).type == "node"
+            local project = require("config.ts_lsp").detect(ctx.dirname)
+            if project.type ~= "node" then return false end
+            return vim.fn.executable(project.root .. "/node_modules/.bin/oxfmt") == 1
+              or vim.fn.exepath("oxfmt") ~= ""
           end,
         },
         clang_format = {
@@ -44,12 +46,12 @@ return {
         -- Java: delegate entirely to JDTLS
         java = { lsp_format = "prefer" },
 
-        -- TS/JS: try deno_fmt first (condition gates it), then eslint
-        -- stop_after_first means only one runs per save
-        typescript      = { "deno_fmt", "eslint", stop_after_first = true },
-        typescriptreact = { "deno_fmt", "eslint", stop_after_first = true },
-        javascript      = { "deno_fmt", "eslint", stop_after_first = true },
-        javascriptreact = { "deno_fmt", "eslint", stop_after_first = true },
+        -- TS/JS: try deno_fmt first, then project-local oxfmt.
+        -- stop_after_first means only one runs per save.
+        typescript      = { "deno_fmt", "oxfmt", stop_after_first = true },
+        typescriptreact = { "deno_fmt", "oxfmt", stop_after_first = true },
+        javascript      = { "deno_fmt", "oxfmt", stop_after_first = true },
+        javascriptreact = { "deno_fmt", "oxfmt", stop_after_first = true },
 
         -- pure c
         c = { "clang_format" },
