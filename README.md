@@ -1,17 +1,11 @@
-# Dotfiles — chezmoi + mise
+# Dotfiles
 
-Portable shell configuration for Fedora, Debian/Ubuntu, Alpine, Arch Linux,
-macOS, and WSL. Zsh configuration uses Zsh syntax; installation/helper scripts
-use POSIX shell and `.sh` filenames. Upstream TPM/plugins require system Bash
-(included by this bootstrap on Alpine; normally part of other supported OSes).
+Chezmoi-managed shell and application configuration, with mise for tools and
+repeatable setup on Fedora, Debian/Ubuntu, Alpine, Arch, macOS, and WSL.
 
-## Fresh installation
+## Quickstart
 
-The migration currently lives on **migrate/chezmoi**. `main` still holds the
-previous Stow setup. Publish the migration branch before using this procedure
-on another machine.
-
-Download the script, inspect it, preview and run it as your regular user:
+For a fresh machine, run as your regular user (Linux needs sudo or doas):
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/mahmoudsalmi/.dotfiles/migrate/chezmoi/bootstrap.sh -o bootstrap.sh
@@ -20,185 +14,21 @@ sh bootstrap.sh
 exec zsh -l
 ```
 
-Linux requires a user with sudo or doas privileges. On a fresh Mac, complete
-Apple command line tools installation if requested, then rerun. On Arch,
-update your system normally before bootstrapping; the script does not perform
-a full system upgrade or refresh pacman's databases. On Alpine enable your
-release's community repository for shadow. The bootstrap also installs
-`gcompat`: some mise-managed release binaries require the glibc loader, while
-Alpine uses musl. It installs a C toolchain on Linux so Neovim can compile its
-Tree-sitter parsers on first launch; macOS uses the Xcode command-line tools.
-These prerequisites do not guarantee every upstream binary will work; the
-fresh-install test must still validate the full toolset. Run inside the Linux
-distribution for WSL. Custom terminal profiles must not explicitly force Bash.
-
-The bootstrap:
-
-1. Detects the OS/package manager and installs prerequisites and system Zsh.
-2. Installs mise if absent, then installs chezmoi through mise.
-3. Initializes chezmoi from this repository's migration branch. An existing
-   checkout must match the requested origin URL and branch; it is not pulled
-   or switched automatically.
-4. Backs up existing `.zshrc`/`.zshenv`/`.zprofile` once, then applies configuration,
-   including pinned Zsh and tmux plugin archives.
-5. Runs `mise install` against the restored global tool configuration,
-   including the pinned Neovim release.
-6. Installs macOS native packages with `mise run install:packages` (btop via
-   Homebrew-compatible packages on Apple Silicon; installed Homebrew on Intel).
-7. Rebuilds bat's theme cache when bat is installed.
-8. Changes your account's login shell to Zsh if needed.
-
-Neovim config is deployed to `~/.config/nvim`. On the first launch, lazy.nvim
-clones the plugins pinned in `lazy-lock.json`; Tree-sitter parsers are compiled
-when a Linux compiler is available (the bootstrap installs one). Plugin-backed
-language servers and formatters such as JDTLS, TypeScript LSP, `clangd`, and
-`clang-format` remain optional and need their respective tools installed.
-Markdown preview's browser app also needs Node.js/npm; its plugin build is
-skipped with a warning when npm is unavailable.
-
-Existing conflicting files may prompt during chezmoi apply. Network access is
-needed for installers, repository cloning, plugins and tools. The supported
-bootstrap layout uses default HOME dotfiles and `~/.config`; custom XDG config
-locations or ZDOTDIR require corresponding changes to chezmoi's source layout.
-Availability of individual tools' binaries/build prerequisites varies by OS;
-the bootstrap stops and reports failures rather than hiding them.
-
-To select a different source explicitly:
-
-```sh
-DOTFILES_REPO=https://github.com/mahmoudsalmi/.dotfiles.git DOTFILES_BRANCH=main sh bootstrap.sh
-```
-
-Use that only once `main` contains the chezmoi migration. After merging, update
-the bootstrap's default branch and the raw-download URL above in the same PR.
-The bootstrap initially resolves the latest chezmoi; the restored mise config
-then determines the tool versions used by the completed installation.
-
-## Ownership
-
-| Component | Owner |
-| --- | --- |
-| Prerequisites and login shell | Bootstrap + OS package manager |
-| Shared tool versions and package declarations | mise, tracked `~/.config/mise/config.toml` |
-| Machine-local/global tool selections | mise, untracked `~/.config/mise/config.local.toml` |
-| Configuration source and deployment | chezmoi |
-| Pinned Zsh and tmux plugin sources | chezmoi external archive manifests |
-| History, caches, saved sessions and local overrides | Local machine state |
-
-Do not use TPM's install/update shortcuts for the plugins owned by chezmoi.
-Update their pinned archive commits and apply instead. Nerd Fonts must be
-configured in the terminal that renders the session, including over SSH.
-
-## Everyday workflow
-
-```sh
-chezmoi edit ~/.zshrc
-chezmoi diff
-chezmoi apply
-```
-
-Shared, reproducible tool pins belong in the tracked
-`~/.config/mise/config.toml`. New global tool selections belong in the
-machine-local `~/.config/mise/config.local.toml`; `settings.write_targets.tools`
-routes new `mise use --global` entries there. The bootstrap also installs its
-initial chezmoi executable through that local file.
-
-```sh
-mise use --global --pin TOOL@VERSION
-mise config ls
-```
-
-When you want to promote a local selection to every machine, copy its entry
-from `config.local.toml` into `dot_config/mise/config.toml`, then remove it from
-the local file. Review and commit the shared pin normally. `write_targets` only
-routes new tools; if a tool already exists in the tracked config and you want a
-machine-local override, target the local file explicitly:
-
-```sh
-mise use --path "$HOME/.config/mise/config.local.toml" --pin TOOL@VERSION
-```
-
-Commit and push from the source repository:
-
-```sh
-chezmoi cd
-git status --short
-git add <specific-changed-files>
-git commit -m "Describe the change"
-git push
-exit
-```
-
-On another already configured machine, update and restore tools explicitly:
-
-```sh
-chezmoi update
-mise install
-bat cache --build
-```
-
-For the guided maintenance workflow, use:
+For an existing setup, preview and run the guided updater:
 
 ```sh
 mise run update --dry-run
 mise run update
 ```
 
-The task fetches chezmoi changes without applying them, shows `chezmoi diff`,
-and asks before applying. It then installs configured tool versions, upgrades
-only tools whose version requests allow it, updates declared native packages,
-and updates mise itself last. Exact mise pins are not bumped automatically;
-change those deliberately in the chezmoi source and review/commit the diff.
-`--dry-run` previews local changes and package/tool operations but does not fetch
-remote changes or preview mise's self-update. The task is for routine updates,
-not first-time setup; use `bootstrap.sh` on a fresh machine.
+## Docs
 
-This repository excludes `bootstrap.sh` and `README.md` from home deployment
-using `.chezmoiignore`. Machine history and plugin session snapshots are not
-configuration to commit. The legacy `tm` helper remains until plugin-based
-restoration has been verified after reboot.
+- [Fresh install and bootstrap details](docs/bootstrap.md)
+- [Mise tools, local selections, and updates](docs/mise.md)
+- [Zsh modules, local overrides, and completions](docs/zsh.md)
+- [Neovim configuration and dependencies](docs/neovim.md)
+- [Terminals, fonts, SSH, and tmux](docs/terminals-and-tmux.md)
 
-## SSH and tmux
-
-`.zshenv` exposes mise shims to non-interactive commands:
-
-```sh
-ssh -t machine tmux
-```
-
-`.zprofile` reapplies that PATH setup after system login profiles, which can
-reset PATH on Alpine.
-
-Zsh modules cover environment, shared history, completions, aliases, vi/fzf
-widgets, Starship, Atuin and zoxide. Plugins load from local files; startup
-does not clone repositories.
-
-Atuin uses local history with automatic sync disabled. Import existing history
-explicitly with `atuin import zsh` after the first interactive Zsh session.
-
-Tmux resurrect saves with prefix then Shift-W and restores with prefix then
-Shift-E. Continuum saves every ten minutes and restores when a new tmux server
-starts. The restore setting does not itself start tmux at OS boot, and it does
-not preserve arbitrary process memory or unsaved editor state.
-
-## Homebrew on macOS
-
-Zsh detects an existing Homebrew prefix and adds its `bin`/`sbin` to PATH,
-behind mise shims and `~/.local/bin`. Its Zsh site-functions directory is added
-before compinit. Apple Silicon, Intel, Linuxbrew and an explicit
-`HOMEBREW_PREFIX` are supported. Startup uses filesystem checks only.
-
-`btop` remains pinned under mise `[tools]` on Linux. On macOS,
-`[bootstrap.packages]` declares `brew:btop`; install it explicitly with:
-
-```sh
-mise run install:packages
-```
-
-On Apple Silicon this runs `mise bootstrap packages apply --manager brew --yes`.
-Mise installs Homebrew-compatible bottles into `/opt/homebrew`, even without
-the `brew` executable. These packages have no mise shims. On Intel Macs, where
-mise's native brew manager is unavailable, the task uses installed Homebrew.
-Homebrew's current btop formula is installed, rather than pinning Linux's
-version. Existing installations are preserved; no automatic upgrades occur.
-The bootstrap runs this task on macOS; `mise install` alone does not.
+The migration is maintained on `migrate/chezmoi`; `main` may still contain the
+legacy Stow setup until the migration is merged. See [bootstrap details](docs/bootstrap.md)
+before selecting a different source branch.

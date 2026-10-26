@@ -81,9 +81,19 @@ ms-fzf-cd() {
   builtin cd -- "$selected" && zle reset-prompt
   return 0
 }
+ms-edit-local-zsh() {
+  local file="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/local.zsh"
+  if (( ! $+commands[nvim] )); then
+    zle -M 'Neovim is not available'
+    return 0
+  fi
+  command nvim -- "$file"
+  zle reset-prompt
+}
 zle -N ms-fzf-insert-path
 zle -N ms-fzf-edit-file
 zle -N ms-fzf-cd
+zle -N ms-edit-local-zsh
 
 # Bind both vi maps explicitly; preserve vi's ordinary letter commands.
 for _ms_keymap in viins vicmd; do
@@ -102,6 +112,7 @@ for _ms_keymap in viins vicmd; do
   bindkey -M "$_ms_keymap" '^t' ms-fzf-insert-path
   bindkey -M "$_ms_keymap" '^g' ms-fzf-edit-file
   bindkey -M "$_ms_keymap" '^xc' ms-fzf-cd
+  bindkey -M "$_ms_keymap" '^x^z' ms-edit-local-zsh
   bindkey -M "$_ms_keymap" '^r' history-incremental-search-backward
 done
 unset _ms_keymap

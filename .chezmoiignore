@@ -1,6 +1,7 @@
 # Repository files: tracked by Git, never deployed into HOME.
 bootstrap.sh
 README.md
+docs
 
 # Host-specific overrides and saved session state.
 .config/zsh/local.zsh

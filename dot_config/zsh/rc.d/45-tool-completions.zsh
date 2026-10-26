@@ -4,8 +4,36 @@ autoload -Uz _gnu_generic
 zmodload zsh/stat
 
 typeset -gA _MS_TOOL_COMPLETION_STAMP _MS_TOOL_COMPLETION_HANDLER
+# Generators registered from zsh/local.zsh; each function writes compdef code to stdout.
+typeset -gA _MS_TOOL_COMPLETION_GENERATOR
+
+# Public API for machine-local completions:
+#   _mytool_completion() { command mytool completion zsh }
+#   ms_add_tool_completion mytool _mytool_completion
+ms_add_tool_completion() {
+  if (( $# != 2 )); then
+    print -u2 'usage: ms_add_tool_completion TOOL GENERATOR_FUNCTION'
+    return 2
+  fi
+  local tool=$1 generator=$2
+  if (( ! $+functions[$generator] )); then
+    print -u2 "completion generator function not found: $generator"
+    return 1
+  fi
+  _MS_TOOL_COMPLETION_GENERATOR[$tool]=$generator
+  unset "_MS_TOOL_COMPLETION_STAMP[$tool]" "_MS_TOOL_COMPLETION_HANDLER[$tool]"
+  if (( $+commands[$tool] )); then
+    compdef _ms_complete_tool "$tool"
+  fi
+  return 0
+}
 
 _ms_generate_completion() {
+  local generator=${_MS_TOOL_COMPLETION_GENERATOR[$1]:-}
+  if [[ -n $generator ]]; then
+    "$generator" "$@"
+    return $?
+  fi
   case $1 in
     mise) command mise completion zsh ;;
     chezmoi) command chezmoi completion zsh ;;
