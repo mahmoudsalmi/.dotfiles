@@ -9,6 +9,8 @@ README.md
 .config/tmux/sessions
 .config/tmux/sessions/**
 .gitconfig.local
+.config/mise/config.local.toml
+.config/mise/config.*.local.toml
 
 {{- if not .terminals }}
 

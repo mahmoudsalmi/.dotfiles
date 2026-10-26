@@ -124,8 +124,9 @@ fi
 # Work outside the cloned repository so its project config cannot override the
 # user-global chezmoi selection. No shell activation is required for mise exec.
 run cd "$HOME"
-log 'Installing and recording chezmoi through mise...'
-run mise use --global --pin chezmoi@latest
+run mkdir -p "$HOME/.config/mise"
+log 'Installing chezmoi into the machine-local mise config...'
+run mise use --path "$HOME/.config/mise/config.local.toml" --pin chezmoi@latest
 run mise exec -- chezmoi --version
 
 # Restore the migration branch; never apply the old Stow main branch by mistake.

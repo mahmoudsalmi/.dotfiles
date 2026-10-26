@@ -18,6 +18,10 @@ tmux = "3.7c"
 yazi = "26.9.1"
 zoxide = "0.10.0"
 
+# New `mise use --global` tools belong to the untracked machine-local file.
+[settings.write_targets]
+tools = "~/.config/mise/config.local.toml"
+
 # Linux build tools compile Neovim Tree-sitter parsers. Packages for managers
 # not installed on the current distribution are skipped by mise.
 [bootstrap.packages]

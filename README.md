@@ -79,7 +79,8 @@ then determines the tool versions used by the completed installation.
 | Component | Owner |
 | --- | --- |
 | Prerequisites and login shell | Bootstrap + OS package manager |
-| Executables and pinned versions | mise (`~/.config/mise/config.toml`) |
+| Shared tool versions and package declarations | mise, tracked `~/.config/mise/config.toml` |
+| Machine-local/global tool selections | mise, untracked `~/.config/mise/config.local.toml` |
 | Configuration source and deployment | chezmoi |
 | Pinned Zsh and tmux plugin sources | chezmoi external archive manifests |
 | History, caches, saved sessions and local overrides | Local machine state |
@@ -96,11 +97,25 @@ chezmoi diff
 chezmoi apply
 ```
 
-When changing tool versions, update mise then import its updated configuration:
+Shared, reproducible tool pins belong in the tracked
+`~/.config/mise/config.toml`. New global tool selections belong in the
+machine-local `~/.config/mise/config.local.toml`; `settings.write_targets.tools`
+routes new `mise use --global` entries there. The bootstrap also installs its
+initial chezmoi executable through that local file.
 
 ```sh
 mise use --global --pin TOOL@VERSION
-chezmoi add ~/.config/mise/config.toml
+mise config ls
+```
+
+When you want to promote a local selection to every machine, copy its entry
+from `config.local.toml` into `dot_config/mise/config.toml`, then remove it from
+the local file. Review and commit the shared pin normally. `write_targets` only
+routes new tools; if a tool already exists in the tracked config and you want a
+machine-local override, target the local file explicitly:
+
+```sh
+mise use --path "$HOME/.config/mise/config.local.toml" --pin TOOL@VERSION
 ```
 
 Commit and push from the source repository:
