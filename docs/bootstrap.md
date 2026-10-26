@@ -5,7 +5,7 @@
 Download, inspect, preview, and run the bootstrap as your regular user:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mahmoudsalmi/.dotfiles/migrate/chezmoi/bootstrap.sh -o bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/mahmoudsalmi/.dotfiles/main/bootstrap.sh -o bootstrap.sh
 sh bootstrap.sh --dry-run
 sh bootstrap.sh
 exec zsh -l
@@ -18,7 +18,7 @@ needs its community repository enabled for packages such as `shadow`. Run the
 Linux setup inside the WSL distribution. Terminal profiles should not force
 Bash.
 
-The default source is the `migrate/chezmoi` branch of this repository. To select
+The default source is the `main` branch of this repository. To select
 a different source explicitly:
 
 ```sh

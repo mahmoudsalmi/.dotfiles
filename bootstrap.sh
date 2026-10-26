@@ -129,9 +129,9 @@ log 'Installing chezmoi into the machine-local mise config...'
 run mise use --path "$HOME/.config/mise/config.local.toml" --pin chezmoi@latest
 run mise exec -- chezmoi --version
 
-# Restore the migration branch; never apply the old Stow main branch by mistake.
+# Restore the current chezmoi-managed main branch.
 dotfiles_repo=${DOTFILES_REPO:-https://github.com/mahmoudsalmi/.dotfiles.git}
-dotfiles_branch=${DOTFILES_BRANCH:-migrate/chezmoi}
+dotfiles_branch=${DOTFILES_BRANCH:-main}
 if [ "$dry_run" = no ]; then
     source_dir=$(mise exec -- chezmoi source-path)
     [ -n "$source_dir" ] || fail 'chezmoi did not report a source directory.'

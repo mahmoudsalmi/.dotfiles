@@ -8,7 +8,7 @@ repeatable setup on Fedora, Debian/Ubuntu, Alpine, Arch, macOS, and WSL.
 For a fresh machine, run as your regular user (Linux needs sudo or doas):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/mahmoudsalmi/.dotfiles/migrate/chezmoi/bootstrap.sh -o bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/mahmoudsalmi/.dotfiles/main/bootstrap.sh -o bootstrap.sh
 sh bootstrap.sh --dry-run
 sh bootstrap.sh
 exec zsh -l
@@ -29,6 +29,5 @@ mise run update
 - [Neovim configuration and dependencies](docs/neovim.md)
 - [Terminals, fonts, SSH, and tmux](docs/terminals-and-tmux.md)
 
-The migration is maintained on `migrate/chezmoi`; `main` may still contain the
-legacy Stow setup until the migration is merged. See [bootstrap details](docs/bootstrap.md)
-before selecting a different source branch.
+The legacy Stow setup is preserved on `legacy/stow`. See
+[bootstrap details](docs/bootstrap.md) before selecting a different source branch.
