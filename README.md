@@ -122,6 +122,22 @@ mise install
 bat cache --build
 ```
 
+For the guided maintenance workflow, use:
+
+```sh
+mise run update --dry-run
+mise run update
+```
+
+The task fetches chezmoi changes without applying them, shows `chezmoi diff`,
+and asks before applying. It then installs configured tool versions, upgrades
+only tools whose version requests allow it, updates declared native packages,
+and updates mise itself last. Exact mise pins are not bumped automatically;
+change those deliberately in the chezmoi source and review/commit the diff.
+`--dry-run` previews local changes and package/tool operations but does not fetch
+remote changes or preview mise's self-update. The task is for routine updates,
+not first-time setup; use `bootstrap.sh` on a fresh machine.
+
 This repository excludes `bootstrap.sh` and `README.md` from home deployment
 using `.chezmoiignore`. Machine history and plugin session snapshots are not
 configuration to commit. The legacy `tm` helper remains until plugin-based
