@@ -43,3 +43,11 @@ run = 'sh "${XDG_CONFIG_HOME:-$HOME/.config}/mise/scripts/install-packages.sh"'
 [tasks."services:macos"]
 description = "Install macOS launchd limits (maxfiles, maxproc); requires sudo"
 run = 'sh "${XDG_CONFIG_HOME:-$HOME/.config}/mise/scripts/install-macos-services.sh"'
+
+[tasks."terminfo:push"]
+description = "Install a local terminfo entry on an SSH host"
+usage = '''
+arg "<host>" env="MISE_TERMINFO_HOST" help="SSH host or config alias"
+arg "[entry]" default="xterm-ghostty" env="MISE_TERMINFO_ENTRY" help="Local terminfo entry to install"
+'''
+run = 'bash "${XDG_CONFIG_HOME:-$HOME/.config}/mise/scripts/push-terminfo.sh"'

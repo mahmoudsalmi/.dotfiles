@@ -23,7 +23,9 @@ if (( ! ${+ZSH_AUTOSUGGEST_STRATEGY} )); then
   ZSH_AUTOSUGGEST_STRATEGY=(history)
 fi
 if (( ! ${+ZSH_AUTOSUGGEST_USE_ASYNC} )); then
+  # Async autosuggestions can redraw garbled input in remote SSH sessions.
   ZSH_AUTOSUGGEST_USE_ASYNC=1
+  [[ -n ${SSH_CONNECTION:-} ]] && ZSH_AUTOSUGGEST_USE_ASYNC=0
 fi
 _ms_plugins="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/plugins"
 if [[ -r "$_ms_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
