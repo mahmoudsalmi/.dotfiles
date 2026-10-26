@@ -168,6 +168,15 @@ if [ "$dry_run" = yes ]; then
     log '[dry-run] Read the account login shell; use chsh if it differs from Zsh.'
 else
     zsh_path=$(command -v zsh)
+    if ! grep -Fqx "$zsh_path" /etc/shells && [ "$os" = Linux ]; then
+        resolved_zsh=$(readlink -f "$zsh_path" 2>/dev/null || :)
+        for candidate in "$resolved_zsh" /bin/zsh /usr/bin/zsh /usr/sbin/zsh /sbin/zsh; do
+            if [ -n "$candidate" ] && [ -x "$candidate" ] && grep -Fqx "$candidate" /etc/shells; then
+                zsh_path=$candidate
+                break
+            fi
+        done
+    fi
     grep -Fqx "$zsh_path" /etc/shells || fail "$zsh_path is not listed in /etc/shells."
     username=$(id -un)
     case $os in
