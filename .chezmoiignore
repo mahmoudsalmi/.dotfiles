@@ -1,5 +1,6 @@
 # Repository files: tracked by Git, never deployed into HOME.
 bootstrap.sh
+install.sh
 README.md
 docs
 
