@@ -14,7 +14,24 @@ return {
         "markdown",
         "markdown_inline",
         "java",
-        "kotlin"
+        "kotlin",
+        -- Fenced code blocks in Markdown are highlighted by the parser of
+        -- their language (```bash, ```json...); install those you write.
+        "bash",
+        "json",
+        "yaml",
+        "toml",
+        "python",
+        "javascript",
+        "typescript",
+        "html",
+        "css",
+        "go",
+        "rust",
+        "sql",
+        "dockerfile",
+        "diff",
+        "regex",
       }
 
       require 'nvim-treesitter.configs'.setup {
