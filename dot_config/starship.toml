@@ -29,6 +29,12 @@ symbol = '📦 '
 style = 'bold 141'
 format = 'in [$symbol$env_value]($style) '
 
+# Warning badge on admin machines (MS_ADMIN_MACHINE is exported there).
+[env_var.MS_ADMIN_MACHINE]
+symbol = '⚠ '
+style = 'bold red'
+format = '[$symbol ADMIN]($style) '
+
 [git_branch]
 format = 'on [$symbol$branch]($style) '
 truncation_length = 32
