@@ -6,6 +6,20 @@ docs
 
 # Host-specific overrides and saved session state.
 .config/zsh/local.zsh
+
+# Pi credentials and machine-local state; only selected agent config is managed.
+.pi/agent/auth.json
+.pi/agent/trust.json
+.pi/agent/sessions
+.pi/agent/sessions/**
+.pi/agent/npm
+.pi/agent/npm/**
+.pi/agent/git
+.pi/agent/git/**
+.pi/agent/models-store.json
+.pi/agent/run-history.jsonl
+.pi/agent/missions
+.pi/agent/missions/**
 .config/tmux/resurrect
 .config/tmux/resurrect/**
 .config/tmux/sessions
