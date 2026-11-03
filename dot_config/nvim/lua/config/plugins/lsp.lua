@@ -17,6 +17,7 @@ return {
       'github/copilot.vim',
       "mason-org/mason.nvim",
       "mason-org/mason-lspconfig.nvim",
+      "WhoIsSethDaniel/mason-tool-installer.nvim",
     },
     config = function()
       local capabilities = require('blink.cmp').get_lsp_capabilities()
@@ -55,6 +56,11 @@ return {
             package_uninstalled = "✗"
           }
         }
+      })
+      require('mason-tool-installer').setup({
+        ensure_installed = { 'tree-sitter-cli' },
+        run_on_start = true,
+        auto_update = false,
       })
       require 'mason-lspconfig'.setup({
         ensure_installed = {},
