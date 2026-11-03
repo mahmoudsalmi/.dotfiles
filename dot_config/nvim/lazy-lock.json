@@ -22,6 +22,7 @@
   "pi-nvim-bridge": { "branch": "main", "commit": "5dd7e4d7c5546458bbb79a4c5ec34e70c568fe99" },
   "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
   "render-markdown.nvim": { "branch": "main", "commit": "3f3eea97b80839f629c951ca660ffd125bfa5b34" },
+  "sonarlint.nvim": { "branch": "main", "commit": "acd09b78969ddc965a7ddf59abb9d9eec5ecd94f" },
   "telescope.nvim": { "branch": "master", "commit": "a0bbec21143c7bc5f8bb02e0005fa0b982edc026" },
   "translate.nvim": { "branch": "main", "commit": "1a841e56407ba02e919ed9af573dbe531404aebb" }
 }
