@@ -30,8 +30,10 @@ vim.api.nvim_create_autocmd('MenuPopup', {
       ]]
     end
 
-    local urls = require("vim.ui")._get_urls()
-    if vim.startswith(urls[1], "http") then
+    -- `_get_urls` is an internal Neovim helper and may return no match.
+    local get_urls = require("vim.ui")._get_urls
+    local urls = type(get_urls) == "function" and get_urls() or {}
+    if urls[1] and vim.startswith(urls[1], "http") then
       vim.cmd [[ amenu enable PopUp.URL ]]
     end
   end

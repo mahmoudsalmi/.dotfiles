@@ -16,6 +16,20 @@ return {
       javascript = true, javascriptreact = true,
     }
 
+    local function find_project_bin(root, name)
+      local dir = root
+      while dir and dir ~= "" do
+        local candidate = vim.fs.joinpath(dir, "node_modules", ".bin", name)
+        if vim.fn.executable(candidate) == 1 then
+          return candidate
+        end
+
+        local parent = vim.fs.dirname(dir)
+        if parent == dir then break end
+        dir = parent
+      end
+    end
+
     local function lint_node_buffer(bufnr)
       if not ts_fts[vim.bo[bufnr].filetype] then return end
 
@@ -24,14 +38,13 @@ return {
       local project = require("config.ts_lsp").detect(start_dir)
       if project.type ~= "node" then return end
 
-      local bins = {
-        { name = "oxlint", path = project.root .. "/node_modules/.bin/oxlint" },
-        { name = "eslint", path = project.root .. "/node_modules/.bin/eslint" },
-      }
+      -- In pnpm workspaces, tools are often installed only at the workspace
+      -- root rather than in the individual package's node_modules/.bin.
       local selected
-      for _, candidate in ipairs(bins) do
-        if vim.fn.executable(candidate.path) == 1 then
-          selected = candidate
+      for _, name in ipairs({ "oxlint", "eslint" }) do
+        local path = find_project_bin(project.root, name)
+        if path then
+          selected = { name = name, path = path }
           break
         end
       end
@@ -46,7 +59,7 @@ return {
       end
       if not selected then
         vim.notify_once(
-          "nvim-lint: install oxlint or eslint in this Node project to enable linting.",
+          "nvim-lint: oxlint or eslint not found in this Node project or its parent workspace.",
           vim.log.levels.WARN
         )
         return

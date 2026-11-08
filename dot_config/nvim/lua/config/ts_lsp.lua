@@ -1,11 +1,12 @@
 -- lua/config/ts_lsp.lua
--- TypeScript / JavaScript LSP: auto-detect Deno vs Node, resolve the right
--- node binary via fnm. Called from after/ftplugin/{typescript,typescriptreact,
--- javascript,javascriptreact}.lua.
+-- TypeScript / JavaScript LSP: auto-detect Deno vs Node and select the server
+-- supported by the workspace TypeScript version. Called from after/ftplugin/
+-- {typescript,typescriptreact,javascript,javascriptreact}.lua.
 --
 -- Setup:
---   Deno  → ships with `deno lsp`; no extra install needed.
---   Node  → :MasonInstall typescript-language-server
+--   Deno       → ships with `deno lsp`; no extra install needed.
+--   TypeScript <7 → :MasonInstall typescript-language-server (ts_ls).
+--   TypeScript 7+ → workspace `tsc --lsp` (native TypeScript LSP).
 
 local M = {}
 
@@ -168,9 +169,37 @@ function M.detect(cwd)
   }
 end
 
+local function find_local_typescript(root)
+  local dir = root
+  while dir and dir ~= "" do
+    local module_dir = vim.fs.joinpath(dir, "node_modules", "typescript")
+    local tsserver = vim.fs.joinpath(module_dir, "lib", "tsserver.js")
+    local tsc = vim.fs.joinpath(dir, "node_modules", ".bin", "tsc")
+    if vim.fn.filereadable(tsserver) == 1 or vim.fn.executable(tsc) == 1 then
+      return { root = dir, tsserver = tsserver, tsc = tsc }
+    end
+
+    local parent = vim.fs.dirname(dir)
+    if parent == dir then break end
+    dir = parent
+  end
+end
+
+local function supports_native_ts_lsp(tsc, cwd, path_env)
+  if vim.fn.executable(tsc) ~= 1 then return false end
+
+  local result = vim.system({ tsc, "--version" }, {
+    cwd = cwd,
+    env = { PATH = path_env },
+    text = true,
+  }):wait()
+  local major = tonumber((result.stdout or ""):match("Version%s+(%d+)%.") or "")
+  return result.code == 0 and major ~= nil and major >= 7
+end
+
 -- ── LSP startup ───────────────────────────────────────────────────────────────
 
---- on_attach shared by both denols and ts_ls.
+--- on_attach shared by denols, ts_ls, and the native TypeScript 7 LSP.
 local function on_attach(_, bufnr)
   local map = function(mode, lhs, rhs, desc)
     vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, silent = true, desc = desc })
@@ -224,8 +253,37 @@ function M.start()
       return
     end
 
-    local ts_bin = vim.fn.stdpath("data") .. "/mason/bin/typescript-language-server"
-    if vim.fn.executable(ts_bin) ~= 1 then
+    -- Respect the package's Node runtime, and use its local TypeScript when
+    -- available (including packages installed at a pnpm workspace root).
+    local path_env = (rt.node_bin_dir and (rt.node_bin_dir .. ":") or "") .. (os.getenv("PATH") or "")
+    local local_ts = find_local_typescript(rt.root)
+    local ts_ls_bin = vim.fn.stdpath("data") .. "/mason/bin/typescript-language-server"
+
+    if local_ts
+      and vim.fn.filereadable(local_ts.tsserver) ~= 1
+      and supports_native_ts_lsp(local_ts.tsc, local_ts.root, path_env)
+    then
+      vim.notify(
+        ("nvim ts [node, TypeScript 7 LSP]  %s%s"):format(
+          rt.node_version,
+          rt.version_file and ("  ← " .. vim.fn.fnamemodify(rt.version_file, ":~")) or ""
+        ),
+        vim.log.levels.INFO
+      )
+
+      vim.lsp.start({
+        name         = "tsc",
+        cmd          = { local_ts.tsc, "--lsp", "--stdio" },
+        cmd_cwd      = rt.root,
+        cmd_env      = { PATH = path_env },
+        root_dir     = rt.root,
+        capabilities = caps,
+        on_attach    = on_attach,
+      })
+      return
+    end
+
+    if vim.fn.executable(ts_ls_bin) ~= 1 then
       vim.notify(
         "nvim ts [node]: typescript-language-server not found.\nRun :MasonInstall typescript-language-server",
         vim.log.levels.WARN
@@ -234,19 +292,17 @@ function M.start()
     end
 
     vim.notify(
-      ("nvim ts [node]  %s%s"):format(
+      ("nvim ts [node, ts_ls]  %s%s"):format(
         rt.node_version,
         rt.version_file and ("  ← " .. vim.fn.fnamemodify(rt.version_file, ":~")) or ""
       ),
       vim.log.levels.INFO
     )
 
-    -- Prepend fnm node's bin dir to PATH so the mason wrapper uses the right node
-    local path_env = rt.node_bin_dir .. ":" .. (os.getenv("PATH") or "")
-
+    -- TypeScript versions with tsserver.js use the classic ts_ls server.
     vim.lsp.start({
       name         = "ts_ls",
-      cmd          = { ts_bin, "--stdio" },
+      cmd          = { ts_ls_bin, "--stdio" },
       cmd_env      = { PATH = path_env },
       root_dir     = rt.root,
       capabilities = caps,

@@ -8,13 +8,26 @@
 --   Node TS/JS → oxfmt (only when package.json found, no deno.json)
 --   Everything else → LSP fallback if the server supports textDocument/formatting
 --
--- Install:  Node projects should provide oxfmt in their local node_modules.
+-- Install:  Node projects/workspaces should provide oxfmt in node_modules/.bin.
 
 return {
   "stevearc/conform.nvim",
   event = "BufWritePre",
   config = function()
     local conform = require("conform")
+
+    local function find_project_bin(root, name)
+      local dir = root
+      while dir and dir ~= "" do
+        local candidate = vim.fs.joinpath(dir, "node_modules", ".bin", name)
+        if vim.fn.executable(candidate) == 1 then
+          return candidate
+        end
+        local parent = vim.fs.dirname(dir)
+        if parent == dir then break end
+        dir = parent
+      end
+    end
 
     conform.setup({
       -- ── Per-formatter overrides ─────────────────────────────────────────────
@@ -32,7 +45,7 @@ return {
           condition = function(_, ctx)
             local project = require("config.ts_lsp").detect(ctx.dirname)
             if project.type ~= "node" then return false end
-            return vim.fn.executable(project.root .. "/node_modules/.bin/oxfmt") == 1
+            return find_project_bin(project.root, "oxfmt") ~= nil
               or vim.fn.exepath("oxfmt") ~= ""
           end,
         },

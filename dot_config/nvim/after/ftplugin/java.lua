@@ -28,12 +28,12 @@ end
 ---   3. bare "java" on PATH (system default)
 ---
 --- Also returns the resolved version string (or nil) so it can be logged.
-local function resolve_java()
+local function resolve_java(start_dir)
   local sdkman_java = vim.fn.expand("~/.sdkman/candidates/java")
 
-  -- 1. Walk up from cwd looking for .sdkmanrc
+  -- 1. Walk up from the Java buffer looking for .sdkmanrc
   local rc_file = vim.fs.find(".sdkmanrc", {
-    path    = vim.fn.getcwd(),
+    path    = start_dir,
     upward  = true,
     type    = "file",
     limit   = 1,
@@ -64,7 +64,9 @@ local function resolve_java()
   return "java", "system PATH", nil
 end
 
-local java_bin, java_ver, java_rc = resolve_java()
+local filename = vim.api.nvim_buf_get_name(0)
+local start_dir = filename ~= "" and vim.fs.dirname(filename) or vim.fn.getcwd()
+local java_bin, java_ver, java_rc = resolve_java(start_dir)
 vim.notify(
   ("nvim-jdtls: using java=%s  [%s]%s"):format(
     java_bin,
@@ -93,8 +95,14 @@ if launcher_jar == "" then
   return
 end
 
--- Unique workspace dir per project root (avoids cross-project contamination)
-local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
+-- Use the Java project root rather than Neovim's cwd; include a path hash so
+-- different projects with the same directory name get separate JDTLS workspaces.
+local root_markers = {
+  ".git", ".sdkmanrc", "mvnw", "gradlew", "pom.xml",
+  "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts",
+}
+local project_root = vim.fs.root(0, root_markers) or start_dir
+local project_name = vim.fn.fnamemodify(project_root, ":t") .. "-" .. vim.fn.sha256(project_root):sub(1, 12)
 local workspace_dir = vim.fn.stdpath("data") .. "/jdtls-workspaces/" .. project_name
 
 -- ── Config ───────────────────────────────────────────────────────────────────
@@ -119,14 +127,7 @@ local config = {
 
   -- Root detection: walk up from the current file to find the project root.
   -- .sdkmanrc is included so monorepos with per-module SDKMANrc files are handled.
-  root_dir = vim.fs.root(0, {
-    ".git",
-    ".sdkmanrc",
-    "mvnw", "gradlew",
-    "pom.xml",
-    "build.gradle", "build.gradle.kts",
-    "settings.gradle", "settings.gradle.kts",
-  }),
+  root_dir = project_root,
 
   -- Wire in blink.cmp capabilities
   capabilities = require("blink.cmp").get_lsp_capabilities(),

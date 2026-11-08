@@ -1,10 +1,14 @@
 return {
   {
-    'echasnovski/mini.nvim',
-    'echasnovski/mini.icons',
+    "echasnovski/mini.nvim",
     config = function()
-      local statusline = require 'mini.statusline'
-      statusline.setup { use_icons = true }
-    end
+      require("mini.statusline").setup({ use_icons = true })
+    end,
+  },
+  {
+    "echasnovski/mini.icons",
+    config = function()
+      require("mini.icons").setup()
+    end,
   },
 }
