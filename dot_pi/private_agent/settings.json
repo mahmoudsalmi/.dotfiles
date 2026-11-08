@@ -19,7 +19,8 @@
     "npm:pi-subagents",
     "npm:@earendil-works/pi-coding-agent",
     "npm:@earendil-works/chord",
-    "npm:pi-web-search"
+    "npm:pi-web-search",
+    "npm:pi-jetbrains-junie-bridge"
   ],
   "extensionChangelogVersions": {
     "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.84.0"
