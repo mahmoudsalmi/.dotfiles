@@ -49,5 +49,6 @@ description = "Install a local terminfo entry on an SSH host"
 usage = '''
 arg "<host>" env="MISE_TERMINFO_HOST" help="SSH host or config alias"
 arg "[entry]" default="xterm-ghostty" env="MISE_TERMINFO_ENTRY" help="Local terminfo entry to install"
+flag "--system" help="Install system-wide on the remote host using sudo"
 '''
 run = 'bash "${XDG_CONFIG_HOME:-$HOME/.config}/mise/scripts/push-terminfo.sh"'

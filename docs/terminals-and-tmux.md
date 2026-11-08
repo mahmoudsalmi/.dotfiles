@@ -38,6 +38,25 @@ mise run terminfo:push mssale tmux-256color
 The compiled database is remote user state, not a file to check into chezmoi.
 Run the task again for each host/user that needs the entry.
 
+### SSH login shell cannot use the user terminfo entry
+
+On some systems, the initial SSH login shell runs in secure-execution mode and
+ncurses ignores the user's `~/.terminfo`. A child shell may work even though the
+initial shell redraws input incorrectly; `infocmp` in a child process can still
+find the user entry. Install the entry system-wide instead, preferably using the
+system's package manager. Alternatively, run from the local machine:
+
+```sh
+mise run terminfo:push --system mssale
+# Optional: specify a different local entry
+mise run terminfo:push --system mssale tmux-256color
+```
+
+The opt-in `--system` mode requires remote `sudo` and may prompt for a password.
+It checks that `/etc/terminfo` is in the remote search path, installs there, and
+verifies the system entry. Reconnect with plain SSH afterward. Without the flag,
+the task continues to install into the remote user's `~/.terminfo`.
+
 ## Tmux persistence
 
 Tmux uses TPM plugin archives pinned by chezmoi. Do not use TPM's install/update
