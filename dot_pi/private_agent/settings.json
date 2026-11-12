@@ -1,10 +1,10 @@
 {
-  "lastChangelogVersion": "1.5.0",
+  "lastChangelogVersion": "1.5.2",
   "defaultProvider": "github-copilot",
   "defaultModel": "gpt-6-luna",
   "defaultThinkingLevel": "medium",
   "enableSkillCommands": true,
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "theme": "dark",
   "treeFilterMode": "default",
   "showHardwareCursor": true,
@@ -23,6 +23,6 @@
     "npm:pi-jetbrains-junie-bridge"
   ],
   "extensionChangelogVersions": {
-    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.84.0"
+    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.88.0"
   }
 }
