@@ -4,7 +4,7 @@
   "defaultModel": "gpt-6-luna",
   "defaultThinkingLevel": "medium",
   "enableSkillCommands": true,
-  "hideThinkingBlock": true,
+  "hideThinkingBlock": false,
   "theme": "dark",
   "treeFilterMode": "default",
   "showHardwareCursor": true,
@@ -23,6 +23,6 @@
     "npm:pi-jetbrains-junie-bridge"
   ],
   "extensionChangelogVersions": {
-    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.88.0"
+    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.88.1"
   }
 }
