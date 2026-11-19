@@ -3,9 +3,11 @@
   "defaultProvider": "github-copilot",
   "defaultModel": "gpt-6-luna",
   "defaultThinkingLevel": "medium",
-  "defaultTools": ["+codemode"],
+  "defaultTools": [
+    "+codemode"
+  ],
   "enableSkillCommands": true,
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "theme": "dark",
   "treeFilterMode": "default",
   "showHardwareCursor": true,
