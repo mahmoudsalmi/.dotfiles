@@ -15,7 +15,7 @@ end
 local function calculate_font_size(uname, osname)
   wezterm.log_info("UNAME = " .. uname .. ", OSNAME = " .. osname)
   if osname == 'macos' then
-    return 14.0
+    return 15.0
   end
   return 12.0
 end
@@ -39,7 +39,7 @@ config.hide_tab_bar_if_only_one_tab = true
 config.use_fancy_tab_bar = false
 config.tab_bar_at_bottom = true
 
-local padding_space = 3
+local padding_space = 4
 config.window_padding = {
   left   = padding_space,
   right  = padding_space,
@@ -47,17 +47,18 @@ config.window_padding = {
   bottom = padding_space,
 }
 
-config.window_background_opacity = 0.97
+config.window_background_opacity = 1.0
 
 config.inactive_pane_hsb = {
   -- NOTE: these values are multipliers, applied on normal pane values
   saturation = 0.9,
-  brightness = 0.6,
+  brightness = 0.85,
 }
 
-config.color_scheme = 'Catppuccin Mocha'
+config.color_scheme = 'Catppuccin Macchiato'
 
 config.scrollback_lines = 100000
 config.enable_scroll_bar = true
+config.hide_mouse_cursor_when_typing = true
 
 return config
