@@ -3,6 +3,7 @@
   "defaultProvider": "github-copilot",
   "defaultModel": "gpt-6-luna",
   "defaultThinkingLevel": "medium",
+  "defaultTools": ["+codemode"],
   "enableSkillCommands": true,
   "hideThinkingBlock": false,
   "theme": "dark",
@@ -23,6 +24,6 @@
     "npm:pi-jetbrains-junie-bridge"
   ],
   "extensionChangelogVersions": {
-    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.89.0"
+    "{\"source\":\"npm:pi-subagents\",\"scope\":\"user\"}": "0.89.1"
   }
 }
