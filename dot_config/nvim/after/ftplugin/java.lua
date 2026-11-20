@@ -66,12 +66,50 @@ end
 
 local filename = vim.api.nvim_buf_get_name(0)
 local start_dir = filename ~= "" and vim.fs.dirname(filename) or vim.fn.getcwd()
-local java_bin, java_ver, java_rc = resolve_java(start_dir)
+local project_java_bin, project_java_ver, java_rc = resolve_java(start_dir)
+
+-- JDTLS 1.63 requires Java 21+ to start; choose the newest installed SDKMAN JDK,
+-- preferring Temurin when versions tie. Project/Gradle JDK remains .sdkmanrc (or 17).
+local sdkman_java = vim.fn.expand("~/.sdkman/candidates/java")
+local function version_parts(name)
+  local major, minor, patch = name:match("^(%d+)%.(%d+)%.?(%d*)")
+  if not major then major = name:match("^(%d+)") end
+  return tonumber(major), tonumber(minor) or 0, tonumber(patch) or 0
+end
+local function newer_jdk(a, b)
+  local amajor, aminor, apatch = version_parts(vim.fn.fnamemodify(a, ":t"))
+  local bmajor, bminor, bpatch = version_parts(vim.fn.fnamemodify(b, ":t"))
+  if amajor ~= bmajor then return amajor > bmajor end
+  if aminor ~= bminor then return aminor > bminor end
+  if apatch ~= bpatch then return apatch > bpatch end
+  return vim.fn.fnamemodify(a, ":t"):match("%-tem$") ~= nil
+    and vim.fn.fnamemodify(b, ":t"):match("%-tem$") == nil
+end
+local function installed_jdks(min_major)
+  local dirs = {}
+  for _, dir in ipairs(vim.fn.glob(sdkman_java .. "/*", false, true)) do
+    local name = vim.fn.fnamemodify(dir, ":t")
+    local major = version_parts(name)
+    if name ~= "current" and major and major >= min_major and vim.fn.executable(dir .. "/bin/java") == 1 then
+      dirs[#dirs + 1] = dir
+    end
+  end
+  table.sort(dirs, newer_jdk)
+  return dirs
+end
+local server_jdks = installed_jdks(21)
+local server_java = server_jdks[1] and (server_jdks[1] .. "/bin/java") or project_java_bin
+local project_java_home = java_rc and vim.fn.fnamemodify(project_java_bin, ":h:h")
+if not project_java_home then
+  local fallback = vim.fn.glob(sdkman_java .. "/17.*", false, true)[1]
+  project_java_home = fallback and vim.fn.executable(fallback .. "/bin/java") == 1 and fallback or nil
+end
 vim.notify(
-  ("nvim-jdtls: using java=%s  [%s]%s"):format(
-    java_bin,
-    java_ver,
-    java_rc and ("  ← " .. vim.fn.fnamemodify(java_rc, ":~")) or ""
+  ("nvim-jdtls: server java=%s; project java=%s [%s]%s"):format(
+    server_java,
+    project_java_bin,
+    project_java_ver,
+    java_rc and ("  ← " .. vim.fn.fnamemodify(java_rc, ":~")) or " (Gradle fallback: JDK 17)"
   ),
   vim.log.levels.INFO
 )
@@ -95,13 +133,12 @@ if launcher_jar == "" then
   return
 end
 
--- Use the Java project root rather than Neovim's cwd; include a path hash so
--- different projects with the same directory name get separate JDTLS workspaces.
-local root_markers = {
-  ".git", ".sdkmanrc", "mvnw", "gradlew", "pom.xml",
-  "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts",
-}
-local project_root = vim.fs.root(0, root_markers) or start_dir
+-- Prefer the actual Gradle/Maven build root over nested subproject markers; then .git.
+-- build.gradle is a fallback for standalone projects that have no wrapper/settings file.
+local project_root = vim.fs.root(0, {
+  { "settings.gradle.kts", "settings.gradle", "gradlew", "mvnw", "pom.xml" },
+  { ".git" },
+}) or vim.fs.root(0, { "build.gradle.kts", "build.gradle" }) or start_dir
 local project_name = vim.fn.fnamemodify(project_root, ":t") .. "-" .. vim.fn.sha256(project_root):sub(1, 12)
 local workspace_dir = vim.fn.stdpath("data") .. "/jdtls-workspaces/" .. project_name
 
@@ -110,7 +147,7 @@ local workspace_dir = vim.fn.stdpath("data") .. "/jdtls-workspaces/" .. project_
 local config = {
   -- The command that starts the language server
   cmd = {
-    java_bin,
+    server_java,
     "-Declipse.application=org.eclipse.jdt.ls.core.id1",
     "-Dosgi.bundles.defaultStartLevel=4",
     "-Declipse.product=org.eclipse.jdt.ls.core.product",
@@ -125,8 +162,7 @@ local config = {
     "-data", workspace_dir,
   },
 
-  -- Root detection: walk up from the current file to find the project root.
-  -- .sdkmanrc is included so monorepos with per-module SDKMANrc files are handled.
+  -- Root is selected from build markers above, independently of per-module .sdkmanrc files.
   root_dir = project_root,
 
   -- Wire in blink.cmp capabilities
@@ -141,13 +177,26 @@ local config = {
       signatureHelp = { enabled = true },
       implementationsCodeLens = { enabled = true },
       referencesCodeLens      = { enabled = false },
+      -- Run Gradle on the project's SDKMAN JDK, independently of the JDTLS server JVM.
+      import = { gradle = { enabled = true, wrapper = { enabled = true }, java = { home = project_java_home } } },
       configuration = {
         updateBuildConfiguration = "interactive",
-        -- Uncomment and adjust to tell JDTLS about your installed JDKs:
-        -- runtimes = {
-        --   { name = "JavaSE-21", path = "/path/to/jdk-21" },
-        --   { name = "JavaSE-17", path = "/path/to/jdk-17" },
-        -- },
+        runtimes = (function()
+          local runtimes = {}
+          for _, spec in ipairs({
+            { "JavaSE-1.8", 8 }, { "JavaSE-11", 11 }, { "JavaSE-17", 17 },
+            { "JavaSE-21", 21 }, { "JavaSE-25", 25 },
+          }) do
+            local candidates = installed_jdks(spec[2])
+            for _, dir in ipairs(candidates) do
+              if version_parts(vim.fn.fnamemodify(dir, ":t")) == spec[2] then
+                runtimes[#runtimes + 1] = { name = spec[1], path = dir }
+                break
+              end
+            end
+          end
+          return runtimes
+        end)(),
       },
       completion = {
         favoriteStaticMembers = {
