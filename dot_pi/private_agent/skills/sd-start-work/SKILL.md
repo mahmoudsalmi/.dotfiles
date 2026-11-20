@@ -36,6 +36,9 @@ Requires `wto`, `git`, `jq`; `tmux` optional.
 6. Report: path, branch, tmux window, prompt path. Notify via `sd-notify` (default)
    only if the user is likely away.
 
+## Optional session handoff
+If the user also wants notes that survive the worktree, use `sd-work-session` for that separate request. Link the worktree and brief from the session README; do not move `.work/<key>/` or change the generated prompt path. Starting a worktree alone does not require session configuration.
+
 ## Rules
 - Never create the worktree without confirmation.
 - If a branch/worktree for this key already exists (`wto status --format json`),
